@@ -81,27 +81,43 @@ services:
       - key: RNCP_LLM_MODEL
         value: sonar
 
-      # Vérification e-mail — mode démo si SMTP_HOST absent.
+      # Vérification e-mail — Brevo recommandé (300 e-mails/j gratuits).
+      # Sans SMTP_HOST → mode démo (lien à l'écran).
       - key: EMAIL_VERIFICATION_REQUISE
         value: "true"
       - key: SMTP_HOST
-        sync: false
+        value: smtp-relay.brevo.com
       - key: SMTP_PORT
         value: "587"
       - key: SMTP_USER
-        sync: false
+        sync: false                # login SMTP Brevo
       - key: SMTP_PASSWORD
-        sync: false
+        sync: false                # clé SMTP Brevo
       - key: SMTP_FROM
         value: One Moov <no-reply@onemoov.app>
       - key: SMTP_TLS
         value: "true"
+
+      # WhatsApp Business API via Twilio.
+      # Sandbox : whatsapp:+14155238886 partagé. Prod : numéro dédié.
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_WHATSAPP_FROM
+        value: whatsapp:+14155238886
+      - key: TWILIO_RAPPEL_TEMPLATE_SID
+        sync: false                # SID du template J-3 approuvé Meta
 
       # Quotas anti-abus.
       - key: QUOTA_MESSAGES_GRATUIT_JOUR
         value: "40"
       - key: BUDGET_MENSUEL_USD
         value: "200"
+
+# Le frontend est déployé séparément sur Cloudflare Pages
+# (frontend/wrangler.toml + frontend/public/_redirects + _headers).
+# Cloudflare offre un CDN plus rapide en Afrique centrale que Render Static.
 
 # ─── PostgreSQL managée ───────────────────────────────────────────────
 databases:

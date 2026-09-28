@@ -54,3 +54,52 @@ def test_login_avec_mauvais_mot_de_passe(client):
 def test_me_sans_jeton(client):
     r = client.get("/api/auth/me")
     assert r.status_code == 401
+
+
+def test_liste_des_pays_disponibles(client):
+    """Le front lit /auth/pays pour afficher les cartes de sélection."""
+    r = client.get("/api/auth/pays")
+    assert r.status_code == 200
+    data = r.json()
+    codes = {p["code"] for p in data["pays"]}
+    assert "Cameroun" in codes
+    assert "Congo-Brazzaville" in codes
+    # Chaque pays porte les infos que la carte affiche.
+    for p in data["pays"]:
+        for cle in ("code", "libelle", "campus_france", "drapeau", "operateurs_paiement"):
+            assert cle in p, f"champ manquant : {cle}"
+        assert len(p["operateurs_paiement"]) >= 1
+
+
+def test_inscription_sans_pays_reste_acceptee(client):
+    """Compat ascendante : un ancien front sans champ pays doit passer."""
+    email = _identifiant_unique()
+    r = client.post("/api/auth/register", json={
+        "email": email, "password": "MotDePasse123", "prenom": "Ada",
+    })
+    assert r.status_code == 200
+
+
+def test_inscription_avec_pays_couvert(client):
+    """Le pays choisi est retourné par /me après inscription + connexion."""
+    email = _identifiant_unique()
+    r = client.post("/api/auth/register", json={
+        "email": email, "password": "MotDePasse123", "prenom": "Ada",
+        "pays_residence": "Cameroun",
+    })
+    assert r.status_code == 200, r.text
+    token = r.json()["access_token"]
+    me = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me.status_code == 200
+    assert me.json()["pays_residence"] == "Cameroun"
+
+
+def test_inscription_avec_pays_non_couvert(client):
+    """Un pays hors périmètre est refusé avec message clair."""
+    email = _identifiant_unique()
+    r = client.post("/api/auth/register", json={
+        "email": email, "password": "MotDePasse123", "prenom": "Ada",
+        "pays_residence": "Freedonia",
+    })
+    assert r.status_code == 422
+    assert "couvert" in r.json()["detail"].lower()

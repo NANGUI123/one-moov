@@ -15,7 +15,7 @@ from app.db import get_db
 from app.deps import get_current_user
 from app.config import get_settings
 from app.models import User, Piste, EmailVerification, AuthToken
-from app.schemas import RegisterIn, LoginIn, EmailIn, TokenOut
+from app.schemas import RegisterIn, LoginIn, EmailIn, TokenOut, PAYS_ACCEPTES
 from app.security import (hash_password, verify_password, create_token,
                          valider_mot_de_passe, nouveau_jeton)
 from app.services import mailer
@@ -79,11 +79,19 @@ def register(body: RegisterIn, db: Session = Depends(get_db)):
     err = valider_mot_de_passe(body.password)
     if err:
         raise HTTPException(422, err)
+    # Le pays est optionnel dans le contrat (compat ancien front) mais s'il
+    # est fourni, il doit être dans la liste des pays couverts.
+    pays = body.pays_residence.strip()
+    if pays and pays not in PAYS_ACCEPTES:
+        raise HTTPException(
+            422,
+            f"Pays non couvert pour l'instant. Choisis parmi : {', '.join(sorted(PAYS_ACCEPTES))}.",
+        )
     if db.query(User).filter(User.email == body.email.lower()).first():
         raise HTTPException(409, "Un compte existe déjà avec cet e-mail")
 
     user = User(email=body.email.lower(), password_hash=hash_password(body.password),
-                prenom=body.prenom.strip())
+                prenom=body.prenom.strip(), pays_residence=pays)
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -179,8 +187,31 @@ def me(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     pistes = db.query(Piste).filter(Piste.user_id == user.id).all()
     return {
         "id": user.id, "email": user.email, "prenom": user.prenom,
+        "pays_residence": user.pays_residence or "",
         "email_verifie": _est_verifie(db, user.id),
         "pistes": [{"id": p.id, "pays": p.pays, "voie": p.voie, "paid": p.paid} for p in pistes],
+    }
+
+
+@router.get("/pays")
+def pays_disponibles():
+    """La liste des pays couverts, avec drapeau et libellé Campus France.
+
+    Le front lit cette route pour afficher les cartes de sélection à
+    l'inscription. Publiée plutôt que codée en dur côté client : quand
+    on ajoutera un troisième pays, il apparaîtra sans redéploiement front.
+    """
+    return {
+        "pays": [
+            {"code": "Cameroun", "libelle": "Cameroun",
+             "campus_france": "Campus France Cameroun",
+             "drapeau": "🇨🇲",
+             "operateurs_paiement": ["MTN Mobile Money", "Orange Money"]},
+            {"code": "Congo-Brazzaville", "libelle": "Congo-Brazzaville",
+             "campus_france": "Campus France Congo",
+             "drapeau": "🇨🇬",
+             "operateurs_paiement": ["MTN Mobile Money", "Airtel Money"]},
+        ],
     }
 
 

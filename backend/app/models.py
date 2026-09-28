@@ -15,6 +15,13 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     password_hash: Mapped[str] = mapped_column(String(255))
     prenom: Mapped[str] = mapped_column(String(120), default="")
+    # Le pays de résidence adapte la procédure Campus France et la liste des
+    # opérateurs mobile money proposés. Choisi à l'inscription, non modifiable
+    # depuis l'app (pour éviter qu'un étudiant change de pays et invalide sa
+    # feuille de route en cours). "" = ancien compte, à demander à la connexion.
+    pays_residence: Mapped[str] = mapped_column(
+        String(80), default="", server_default="",
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     pistes: Mapped[list["Piste"]] = relationship(back_populates="user", cascade="all, delete-orphan")
