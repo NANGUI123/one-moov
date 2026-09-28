@@ -1,11 +1,20 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
-import { GLOBAL_CSS } from "./styles.js";
+import { GLOBAL_CSS, CLE_THEME } from "./styles.js";
 
+// Injecte les CSS globaux (palette + composants) avant le premier rendu.
 const style = document.createElement("style");
 style.textContent = GLOBAL_CSS;
 document.head.appendChild(style);
+
+// Fixe le thème choisi par l'étudiant avant le premier rendu — évite le
+// flash blanc au chargement quand la préférence est « dark ». Une absence
+// de valeur laisse `prefers-color-scheme` décider.
+try {
+  const t = localStorage.getItem(CLE_THEME);
+  if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+} catch { /* localStorage indisponible : on garde le mode auto. */ }
 
 const fonts = document.createElement("link");
 fonts.rel = "stylesheet";

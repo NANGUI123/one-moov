@@ -1,6 +1,59 @@
 import { useState, useEffect, useRef } from "react";
 import { api, getToken, setToken } from "./api.js";
-import { C, URG } from "./styles.js";
+import { C, URG, CLE_THEME } from "./styles.js";
+
+// ── Thème (blanc + vert par défaut, bascule mode nuit) ─────────────
+//
+// Trois états possibles : « light », « dark », ou aucune préférence
+// enregistrée — auquel cas on suit `prefers-color-scheme`. On stocke
+// l'explicite dans localStorage pour que le choix survive à la fermeture
+// et voyage d'un onglet à l'autre.
+function themeCourant() {
+  try {
+    const t = localStorage.getItem(CLE_THEME);
+    if (t === "light" || t === "dark") return t;
+  } catch { /* localStorage indisponible : on lit prefers-color-scheme */ }
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
+function useTheme() {
+  const [theme, setThemeState] = useState(themeCourant);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem(CLE_THEME, theme); } catch { /* privé, cleared, etc. */ }
+  }, [theme]);
+
+  return [theme, () => setThemeState((t) => (t === "dark" ? "light" : "dark"))];
+}
+
+function IconeSoleil() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+function IconeLune() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
+function ThemeToggle({ theme, onToggle }) {
+  const suivant = theme === "dark" ? "Passer en mode clair" : "Passer en mode nuit";
+  return (
+    <button className="theme-toggle" onClick={onToggle}
+      aria-label={suivant} title={suivant}>
+      {theme === "dark" ? <IconeSoleil /> : <IconeLune />}
+    </button>
+  );
+}
 
 // Transparence (feature 2) — texte statique (vouvoiement), aligné sur le backend.
 const TRANSPARENCE = {
@@ -25,6 +78,7 @@ export default function App() {
   const [prenom, setPrenom] = useState("");
   const [piste, setPiste] = useState(null);
   const [rapport, setRapport] = useState(null);
+  const [theme, toggleTheme] = useTheme();
 
   useEffect(() => {
     if (getToken()) api.me().then((u) => { setPrenom(u.prenom || ""); setView("dashboard"); }).catch(() => setToken(null));
@@ -42,7 +96,9 @@ export default function App() {
 
   return (
     <div className="wrap">
-      <Header prenom={prenom} onHome={view !== "auth" && view !== "dashboard" ? goDash : null} onLogout={view !== "auth" ? logout : null} />
+      <Header prenom={prenom} theme={theme} onToggleTheme={toggleTheme}
+        onHome={view !== "auth" && view !== "dashboard" ? goDash : null}
+        onLogout={view !== "auth" ? logout : null} />
       {view === "auth" && <Auth onAuth={(p) => { setPrenom(p); setView("dashboard"); }} />}
       {view === "dashboard" && <Dashboard prenom={prenom}
         onNew={async () => { setPiste(await api.createPiste("Cameroun")); setRapport(null); setView("orientation"); }}
@@ -56,15 +112,18 @@ export default function App() {
   );
 }
 
-function Header({ prenom, onHome, onLogout }) {
+function Header({ prenom, onHome, onLogout, theme, onToggleTheme }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 20, color: C.teal2, cursor: onHome ? "pointer" : "default" }}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+        <div style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 20, color: C.teal, cursor: onHome ? "pointer" : "default" }}
           onClick={onHome || undefined}>One Moov</div>
         {onHome && <span className="link" onClick={onHome} style={{ fontSize: 13 }}>← Tableau de bord</span>}
       </div>
-      {onLogout && <button className="btn-ghost btn-sm" onClick={onLogout}>Déconnexion</button>}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        {onToggleTheme && <ThemeToggle theme={theme} onToggle={onToggleTheme} />}
+        {onLogout && <button className="btn-ghost btn-sm" onClick={onLogout}>Déconnexion</button>}
+      </div>
     </div>
   );
 }
