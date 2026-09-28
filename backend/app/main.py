@@ -40,6 +40,16 @@ def _startup():
     llm = get_llm()
     logger.info(f"Base : {settings.db_url.split('://')[0]} | LLM Groq actif : {llm.available} "
                 f"| modèles : {llm.models}")
+    # État des notifications : e-mail (SMTP/Brevo) et WhatsApp (Twilio).
+    # Rend visible depuis les logs si un fournisseur reste en mode démo,
+    # ce qui évite de deviner pourquoi les mails ne partent pas.
+    try:
+        from app.services import notifications as _notif
+        etat_email = "actif" if _notif.email_configure() else "MODE DÉMO (SMTP absent)"
+        etat_wa = "actif" if _notif.whatsapp_configure() else "MODE DÉMO (Twilio absent)"
+        logger.info(f"Notifications : e-mail = {etat_email} | WhatsApp = {etat_wa}")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"État notifications indéterminé : {e}")
 
 
 @app.get("/health")
