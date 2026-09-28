@@ -115,6 +115,57 @@ services:
       - key: BUDGET_MENSUEL_USD
         value: "200"
 
+  # ─── Frontend React (site statique) ────────────────────────────────
+  # Alternative à Cloudflare Pages : tout héberger sur Render. Plan gratuit,
+  # CDN mondial inclus, HTTPS automatique. Le service pointe sur le service
+  # API ci-dessus via VITE_API_URL, calculé à partir du hostport Render.
+  - type: web
+    name: one-moov-web
+    runtime: static
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    envVars:
+      # URL du backend, injectée à la compilation Vite (variable préfixée
+      # par VITE_ dans le code : voir src/api.js).
+      - key: VITE_API_URL
+        fromService:
+          name: one-moov-api
+          type: web
+          property: hostport
+    headers:
+      # PWA : jamais mettre le service worker en cache — sinon la mise à jour
+      # de la coquille ne se propage pas.
+      - path: /sw.js
+        name: Cache-Control
+        value: no-cache, no-store, must-revalidate
+      - path: /manifest.webmanifest
+        name: Cache-Control
+        value: no-cache
+      # Assets versionnés par Vite : cache immutable un an.
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+      # Sécurité applicative (mêmes en-têtes que Cloudflare Pages).
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+    routes:
+      # Reverse-proxy /api/* vers l'API : le front garde fetch("/api/...")
+      # exactement comme en dev, aucun CORS à gérer.
+      - type: rewrite
+        source: /api/*
+        destination: https://one-moov-api.onrender.com/api/:splat
+      # SPA fallback : toute route front est servie par index.html.
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
 # ─── PostgreSQL managée ───────────────────────────────────────────────
 databases:
   - name: one-moov-db
