@@ -3,10 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>One Moov</title>
+    <title>One Moov — ton parcours d'études en France</title>
+    <meta name="description" content="Orientation gratuite, feuille de route Campus France, entretien blanc et vérification RNCP pour les étudiants d'Afrique francophone." />
+    <meta name="theme-color" content="#0e6b5c" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/icone.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/icone-180.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="One Moov" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Enregistrement du service worker en production seulement — en dev
+      // Vite remplace les modules à la volée et un SW rendrait le rechargement
+      // capricieux.
+      if ("serviceWorker" in navigator && location.hostname !== "localhost") {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("/sw.js").catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
