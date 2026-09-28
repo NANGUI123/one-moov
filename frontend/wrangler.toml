@@ -1,0 +1,18 @@
+# wrangler.toml — Configuration Cloudflare Pages via wrangler CLI.
+#
+# Usage (facultatif : la console Cloudflare Pages fait la même chose sans CLI) :
+#
+#   npm install -g wrangler
+#   wrangler login
+#   wrangler pages deploy dist --project-name=one-moov
+#
+# Sur le dashboard Cloudflare Pages, l'option « GitHub integration »
+# lance un build à chaque push sur main ; c'est ce qu'on privilégie.
+
+name = "one-moov"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "dist"
+
+[vars]
+# Variable exposée au build Vite. Remplacer par l'URL Render réelle.
+VITE_API_URL = "https://one-moov-api.onrender.com"

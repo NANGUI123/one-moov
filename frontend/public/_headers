@@ -1,0 +1,30 @@
+# Cloudflare Pages — en-têtes servis avec chaque réponse.
+#
+# On distingue trois familles :
+#   1. Les assets versionnés par Vite (nom avec hash) : cache long, agressif.
+#   2. Le service worker et le manifest : pas de cache, pour ne pas coincer
+#      les mises à jour du shell PWA.
+#   3. Le HTML : sécurité applicative + no-store (le SW gère la coquille).
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/icons/*
+  Cache-Control: public, max-age=86400
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Service-Worker-Allowed: /
+
+/manifest.webmanifest
+  Cache-Control: no-cache
+  Content-Type: application/manifest+json
+
+/index.html
+  Cache-Control: no-cache
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://one-moov-api.onrender.com; manifest-src 'self'

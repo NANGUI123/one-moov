@@ -1,0 +1,11 @@
+# Cloudflare Pages — règles de redirection
+#
+# 1. Reverse-proxy des appels /api vers le backend Render. Le front garde
+#    donc `fetch("/api/...")` en prod, exactement comme en dev, et pas de
+#    problème CORS ni de cookie tiers.
+#    Remplacer <TON-SERVICE>.onrender.com par l'URL réelle du service Render.
+/api/*  https://one-moov-api.onrender.com/api/:splat  200
+
+# 2. SPA fallback : toute route front (Dashboard, Orientation, Roadmap...)
+#    est servie par index.html — React Router / App.jsx s'occupe du reste.
+/*      /index.html                                  200

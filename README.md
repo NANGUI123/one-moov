@@ -259,3 +259,39 @@ corbeille.
 
 Voir `docs/architecture.md` pour le déroulé bout-en-bout, et le
 [PDF d'architecture](docs/) fourni à l'appui.
+
+---
+
+## Tests
+
+```bash
+cd backend
+pip install pytest
+python -m pytest tests/ -v
+```
+
+18 tests couvrent : /health, exploration OpenAPI, service RAG (ingestion,
+recherche hybride, filtre par phase, formatage, citation de sources),
+inscription / login / vérification de session, orientation mode guidé,
+vérification RNCP en mode repli. Chaque test isole sa base (SQLite fichier
+temporaire, effacé en fin de session).
+
+```bash
+$ pytest tests/ -q
+18 passed in 1.68s
+```
+
+---
+
+## Déploiement
+
+**Backend sur Render** : `render.yaml` à la racine décrit tout (service web
+FastAPI + base Postgres). Un « New Blueprint » sur Render lit ce fichier et
+provisionne les deux d'un coup.
+
+**Frontend PWA sur Cloudflare Pages** : `frontend/wrangler.toml` + les
+`_redirects` et `_headers` dans `frontend/public/`. Le service worker et
+le manifest sont déjà en place — l'étudiant peut installer One Moov sur
+son téléphone en un tap.
+
+Marche à suivre pas à pas dans [`docs/deploiement.md`](docs/deploiement.md).

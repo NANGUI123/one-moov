@@ -1,0 +1,116 @@
+# Render.com — Infrastructure as code pour le backend One Moov.
+#
+# Déploiement :
+#   1. Créer un compte Render.com (gratuit).
+#   2. Sur le dashboard : « New » → « Blueprint » → coller l'URL de ce dépôt
+#      GitHub. Render lit render.yaml et crée les 2 services d'un coup.
+#   3. Ajouter les clés dans l'onglet « Environment » du service `one-moov-api`
+#      qui restent en tant que « Secret » (GROQ_API_KEY, RNCP_LLM_API_KEY,
+#      CINETPAY_API_KEY, SMTP_*, JWT_SECRET).
+#   4. Cliquer « Apply » : le back est en ligne en ~5 minutes.
+#
+# Le plan `free` de Render est parfait pour la démonstration. Pour la
+# production réelle, passer le service en `starter` (7 $/mois, pas
+# d'endormissement après 15 min d'inactivité).
+#
+# NB : PostgreSQL free chez Render est effacé après 30 jours d'inactivité.
+# En prod on prend un plan payant.
+
+services:
+  # ─── Backend FastAPI ────────────────────────────────────────────────
+  - type: web
+    name: one-moov-api
+    runtime: python
+    plan: free
+    region: frankfurt          # Latence correcte depuis l'Afrique centrale.
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: |
+      python -m scripts.enrichir_formations_web || true
+      python -m scripts.ingerer_rag --sans-embedding || true
+      uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Base de données : injectée automatiquement depuis la ressource ci-dessous.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: one-moov-db
+          property: connectionString
+
+      # LLM Groq. À poser à la main dans l'onglet Environment de Render.
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODELS
+        value: llama-3.3-70b-versatile,llama-3.1-8b-instant
+      - key: GROQ_MODEL_LEGER
+        value: llama-3.1-8b-instant
+
+      # Sécurité. JWT_SECRET est obligatoire en prod (générer 48+ caractères).
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE_HOURS
+        value: "720"
+
+      # Tarification.
+      - key: PRIX_PARCOURS_EUR
+        value: "80"
+      - key: TAUX_EUR_FCFA
+        value: "655.957"
+
+      # Paiement mobile money — sandbox par défaut. Basculer en production
+      # quand CinetPay a validé le compte marchand.
+      - key: CINETPAY_API_KEY
+        sync: false
+      - key: CINETPAY_SITE_ID
+        sync: false
+      - key: CINETPAY_MODE
+        value: SANDBOX
+      # URL publique de l'API (calculée par Render sur le service lui-même).
+      - key: PUBLIC_BASE_URL
+        fromService:
+          name: one-moov-api
+          type: web
+          property: hostport
+
+      # RNCP LLM connecté au web (Perplexity par défaut).
+      - key: RNCP_LLM_API_KEY
+        sync: false
+      - key: RNCP_LLM_BASE_URL
+        value: https://api.perplexity.ai
+      - key: RNCP_LLM_MODEL
+        value: sonar
+
+      # Vérification e-mail — mode démo si SMTP_HOST absent.
+      - key: EMAIL_VERIFICATION_REQUISE
+        value: "true"
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        value: One Moov <no-reply@onemoov.app>
+      - key: SMTP_TLS
+        value: "true"
+
+      # Quotas anti-abus.
+      - key: QUOTA_MESSAGES_GRATUIT_JOUR
+        value: "40"
+      - key: BUDGET_MENSUEL_USD
+        value: "200"
+
+# ─── PostgreSQL managée ───────────────────────────────────────────────
+databases:
+  - name: one-moov-db
+    plan: free
+    databaseName: onemoov
+    user: onemoov
+    region: frankfurt
+    # `postgresMajorVersion: 16` supporte pgvector si un jour on veut porter
+    # la recherche dense sur pgvector natif — le service RAG actuel n'en a
+    # pas besoin, il fonctionne en pur SQL portable.
+    postgresMajorVersion: "16"

@@ -1,4 +1,12 @@
 // api.js — couche fetch + jeton JWT (localStorage)
+//
+// En dev, VITE proxifie /api vers http://localhost:8000. En prod, on peut
+// pointer directement vers l'URL Render du backend via VITE_API_URL. Vide
+// ou "/" en prod : le front suppose que le back est sous le même origin
+// (ex. via _redirects Cloudflare Pages qui reverse-proxy /api/*).
+const RACINE_API = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const BASE_API = RACINE_API ? `${RACINE_API}/api` : "/api";
+
 const TOKEN_KEY = "onemoov_token";
 export const getToken = () => { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } };
 export const setToken = (t) => { try { t ? localStorage.setItem(TOKEN_KEY, t) : localStorage.removeItem(TOKEN_KEY); } catch {} };
@@ -7,7 +15,7 @@ async function req(method, path, body) {
   const headers = { "Content-Type": "application/json" };
   const tok = getToken();
   if (tok) headers.Authorization = "Bearer " + tok;
-  const res = await fetch("/api" + path, {
+  const res = await fetch(BASE_API + path, {
     method, headers, body: body ? JSON.stringify(body) : undefined,
   });
   const data = await res.json().catch(() => ({}));
