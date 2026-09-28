@@ -40,7 +40,14 @@ class Settings(BaseSettings):
     RNCP_LLM_BASE_URL: str = "https://api.perplexity.ai"
     RNCP_LLM_MODEL: str = "sonar"
 
-    # Vérification e-mail + envoi (SMTP). Sans SMTP_HOST → mode démo (lien affiché).
+    # Vérification e-mail + envoi (SMTP via Brevo recommandé). Sans
+    # SMTP_HOST → mode démo (lien affiché).
+    #
+    # Configuration Brevo (ex-Sendinblue), 300 e-mails/j gratuits :
+    #   SMTP_HOST=smtp-relay.brevo.com
+    #   SMTP_PORT=587
+    #   SMTP_USER=<login SMTP Brevo, format email>
+    #   SMTP_PASSWORD=<clé SMTP Brevo — pas ton mot de passe compte>
     EMAIL_VERIFICATION_REQUISE: bool = True
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587
@@ -48,6 +55,17 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str = ""
     SMTP_FROM: str = "One Moov <no-reply@onemoov.app>"
     SMTP_TLS: bool = True
+
+    # WhatsApp Business API via Twilio.
+    # Sandbox actif en 5 min (l'étudiant envoie « join <code> » au numéro
+    # de test). En production : numéro d'entreprise + templates Meta.
+    # Sans TWILIO_ACCOUNT_SID → mode démo : le rappel est loggé, pas envoyé.
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_WHATSAPP_FROM: str = "whatsapp:+14155238886"   # sandbox partagé Twilio
+    # SID du template Meta approuvé pour les rappels J-3, requis pour envoyer
+    # HORS de la fenêtre de 24 h. Vide → mode libre 24 h uniquement (dev).
+    TWILIO_RAPPEL_TEMPLATE_SID: str = ""
 
     # Garde-fous
     QUOTA_MESSAGES_GRATUIT_JOUR: int = 40
