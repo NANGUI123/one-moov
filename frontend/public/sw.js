@@ -26,7 +26,11 @@
  * n'est jamais périmée de plus d'un déploiement.
  */
 
-const VERSION = "one-moov-v3";
+// À incrémenter à chaque publication qui touche la coquille (index.html,
+// styles, palette). L'activation du nouveau SW efface les caches
+// nommés autrement — les étudiants voient la nouvelle version dès leur
+// prochaine ouverture, sans manipulation à faire.
+const VERSION = "one-moov-v4";
 
 // Mesuré sur une 3G encombrée : au-delà de deux secondes et demie, l'étudiant
 // a déjà l'impression que l'application est cassée.
