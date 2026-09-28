@@ -140,15 +140,21 @@ function Auth({ onAuth }) {
   const [paysDispo, setPaysDispo] = useState(null);  // liste chargée depuis l'API
 
   // Pays chargés en une fois : la liste est petite et servie sans jeton.
-  // Un repli local évite d'afficher un écran vide si l'API est encore froide.
+  // Un repli local est armé après 3 s pour ne pas laisser l'étudiant devant
+  // « Chargement… » quand le back Render dort ou n'est pas joignable — la
+  // sélection reste utilisable en toutes circonstances.
   useEffect(() => {
     if (mode !== "register") return;
+    const REPLI = [
+      { code: "Cameroun", libelle: "Cameroun", campus_france: "Campus France Cameroun", drapeau: "🇨🇲" },
+      { code: "Congo-Brazzaville", libelle: "Congo-Brazzaville", campus_france: "Campus France Congo", drapeau: "🇨🇬" },
+    ];
+    let annule = false;
+    const timer = setTimeout(() => { if (!annule) setPaysDispo(REPLI); }, 3000);
     api.paysDisponibles()
-      .then((d) => setPaysDispo(d.pays))
-      .catch(() => setPaysDispo([
-        { code: "Cameroun", libelle: "Cameroun", campus_france: "Campus France Cameroun", drapeau: "🇨🇲" },
-        { code: "Congo-Brazzaville", libelle: "Congo-Brazzaville", campus_france: "Campus France Congo", drapeau: "🇨🇬" },
-      ]));
+      .then((d) => { if (!annule) { clearTimeout(timer); setPaysDispo(d.pays); } })
+      .catch(() => { if (!annule) { clearTimeout(timer); setPaysDispo(REPLI); } });
+    return () => { annule = true; clearTimeout(timer); };
   }, [mode]);
 
   const reset = () => { setErr(""); setInfo(""); };
