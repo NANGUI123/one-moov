@@ -140,22 +140,34 @@ function Auth({ onAuth }) {
   const [paysDispo, setPaysDispo] = useState(null);  // liste chargée depuis l'API
 
   // Pays chargés en une fois : la liste est petite et servie sans jeton.
-  // Un repli local évite d'afficher un écran vide si l'API est encore froide.
+  // Un repli local est armé après 3 s pour ne pas laisser l'étudiant devant
+  // « Chargement… » quand le back Render dort ou n'est pas joignable — la
+  // sélection reste utilisable en toutes circonstances.
   useEffect(() => {
     if (mode !== "register") return;
+    const REPLI = [
+      { code: "Cameroun", libelle: "Cameroun", campus_france: "Campus France Cameroun", drapeau: "🇨🇲" },
+      { code: "Congo-Brazzaville", libelle: "Congo-Brazzaville", campus_france: "Campus France Congo", drapeau: "🇨🇬" },
+    ];
+    let annule = false;
+    const timer = setTimeout(() => { if (!annule) setPaysDispo(REPLI); }, 3000);
     api.paysDisponibles()
-      .then((d) => setPaysDispo(d.pays))
-      .catch(() => setPaysDispo([
-        { code: "Cameroun", libelle: "Cameroun", campus_france: "Campus France Cameroun", drapeau: "🇨🇲" },
-        { code: "Congo-Brazzaville", libelle: "Congo-Brazzaville", campus_france: "Campus France Congo", drapeau: "🇨🇬" },
-      ]));
+      .then((d) => { if (!annule) { clearTimeout(timer); setPaysDispo(d.pays); } })
+      .catch(() => { if (!annule) { clearTimeout(timer); setPaysDispo(REPLI); } });
+    return () => { annule = true; clearTimeout(timer); };
   }, [mode]);
 
   const reset = () => { setErr(""); setInfo(""); };
 
   const submitRegister = async () => {
     reset();
+    // On vérifie chaque champ dans l'ordre du formulaire et on renvoie un
+    // message précis. Silencer un clic parce qu'un champ manque déroute
+    // l'étudiant : « pourquoi rien ne se passe ? ».
     if (!pays) { setErr("Choisis d'abord ton pays de résidence."); return; }
+    if (!pn.trim()) { setErr("Renseigne ton prénom."); return; }
+    if (!email.trim()) { setErr("Renseigne ton adresse e-mail."); return; }
+    if (!pw) { setErr("Choisis un mot de passe (8 caractères minimum)."); return; }
     setBusy(true);
     try {
       const r = await api.register(email, pw, pn, pays);
@@ -208,7 +220,9 @@ function Auth({ onAuth }) {
     );
   }
 
-  const peutSoumettre = mode !== "register" ? true : (pays && email && pw);
+  // On ne désactive le bouton que pendant l'appel en cours. Les champs
+  // manquants sont signalés par un message clair au clic (submitRegister),
+  // pas par un bouton silencieusement grisé qui laisse l'étudiant perplexe.
 
   return (
     <div className="card">
@@ -278,9 +292,9 @@ function Auth({ onAuth }) {
       {unverified && <div className="muted" style={{ margin: "4px 0" }}><span className="link" onClick={resend}>Renvoyer l'e-mail de vérification</span></div>}
       {info && <div className="muted" style={{ margin: "6px 0" }}>{info}</div>}
 
-      <button className="btn" disabled={busy || !peutSoumettre} style={{ width: "100%", marginTop: 10 }}
+      <button className="btn" disabled={busy} style={{ width: "100%", marginTop: 10 }}
         onClick={mode === "register" ? submitRegister : mode === "forgot" ? submitForgot : submitLogin}>
-        {mode === "register" ? "Créer mon compte" : mode === "forgot" ? "Envoyer le lien" : "Connexion"}
+        {busy ? "…" : (mode === "register" ? "Créer mon compte" : mode === "forgot" ? "Envoyer le lien" : "Connexion")}
       </button>
 
       <div style={{ marginTop: 14, textAlign: "center", display: "flex", flexDirection: "column", gap: 8 }}>

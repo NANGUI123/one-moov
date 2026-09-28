@@ -24,7 +24,7 @@ services:
     plan: free
     region: frankfurt          # Latence correcte depuis l'Afrique centrale.
     rootDir: backend
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: |
       python -m scripts.enrichir_formations_web || true
       python -m scripts.ingerer_rag --sans-embedding || true
@@ -32,6 +32,13 @@ services:
     healthCheckPath: /health
     autoDeploy: true
     envVars:
+      # Fixe explicitement Python 3.11 : Render utilise désormais Python 3.13
+      # par défaut, qui casse pydantic 2.8, python-jose et bcrypt sur les
+      # roues préconstruites. `runtime.txt` / `.python-version` ne suffit pas
+      # toujours sur le plan gratuit.
+      - key: PYTHON_VERSION
+        value: 3.11.11
+
       # Base de données : injectée automatiquement depuis la ressource ci-dessous.
       - key: DATABASE_URL
         fromDatabase:
