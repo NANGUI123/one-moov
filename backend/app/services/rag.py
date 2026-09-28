@@ -38,44 +38,59 @@ RRF_K = 60
 
 
 # ------------------------------------------------------------ schéma tables
+#
+# La forme du DDL diffère entre SQLite et PostgreSQL sur deux points :
+#   - la colonne d'auto-incrément (INTEGER PRIMARY KEY vs SERIAL) ;
+#   - la valeur par défaut d'un booléen (1 vs TRUE).
+#
+# On construit donc le DDL à l'exécution en lisant le dialecte SQLAlchemy.
 
 
-DDL = [
-    """
-    CREATE TABLE IF NOT EXISTS rag_documents (
-      id INTEGER PRIMARY KEY,
-      organisme VARCHAR(120) NOT NULL,
-      titre VARCHAR(400) NOT NULL,
-      url VARCHAR(800) DEFAULT '',
-      version INTEGER DEFAULT 1,
-      phase VARCHAR(40) DEFAULT '',
-      pays VARCHAR(40) DEFAULT '',
-      actif BOOLEAN DEFAULT 1,
-      ingere_le VARCHAR(40) DEFAULT ''
-    )
-    """,
-    """
-    CREATE TABLE IF NOT EXISTS rag_passages (
-      id INTEGER PRIMARY KEY,
-      document_id INTEGER NOT NULL,
-      titre VARCHAR(400) DEFAULT '',
-      contenu TEXT NOT NULL,
-      phase VARCHAR(40) DEFAULT '',
-      pays VARCHAR(40) DEFAULT '',
-      embedding TEXT DEFAULT ''
-    )
-    """,
-    "CREATE INDEX IF NOT EXISTS idx_rag_passages_document ON rag_passages(document_id)",
-    "CREATE INDEX IF NOT EXISTS idx_rag_passages_phase ON rag_passages(phase)",
-]
+def _est_postgres(db: Session) -> bool:
+    return db.bind.dialect.name in ("postgresql", "postgres")
+
+
+def _ddl(postgres: bool) -> list[str]:
+    id_col = "id SERIAL PRIMARY KEY" if postgres else "id INTEGER PRIMARY KEY AUTOINCREMENT"
+    doc_id_col = "id SERIAL PRIMARY KEY" if postgres else "id INTEGER PRIMARY KEY AUTOINCREMENT"
+    actif_defaut = "TRUE" if postgres else "1"
+    return [
+        f"""
+        CREATE TABLE IF NOT EXISTS rag_documents (
+          {doc_id_col},
+          organisme VARCHAR(120) NOT NULL,
+          titre VARCHAR(400) NOT NULL,
+          url VARCHAR(800) DEFAULT '',
+          version INTEGER DEFAULT 1,
+          phase VARCHAR(40) DEFAULT '',
+          pays VARCHAR(40) DEFAULT '',
+          actif BOOLEAN DEFAULT {actif_defaut},
+          ingere_le VARCHAR(40) DEFAULT ''
+        )
+        """,
+        f"""
+        CREATE TABLE IF NOT EXISTS rag_passages (
+          {id_col},
+          document_id INTEGER NOT NULL,
+          titre VARCHAR(400) DEFAULT '',
+          contenu TEXT NOT NULL,
+          phase VARCHAR(40) DEFAULT '',
+          pays VARCHAR(40) DEFAULT '',
+          embedding TEXT DEFAULT ''
+        )
+        """,
+        "CREATE INDEX IF NOT EXISTS idx_rag_passages_document ON rag_passages(document_id)",
+        "CREATE INDEX IF NOT EXISTS idx_rag_passages_phase ON rag_passages(phase)",
+    ]
 
 
 def init_tables(db: Session) -> None:
     """Crée les tables RAG si elles n'existent pas.
 
-    Idempotent : on peut l'appeler à chaque démarrage.
+    Idempotent : on peut l'appeler à chaque démarrage. Le DDL est adapté
+    au dialecte de la base au premier appel.
     """
-    for ddl in DDL:
+    for ddl in _ddl(_est_postgres(db)):
         db.execute(text(ddl))
     db.commit()
 
@@ -164,8 +179,9 @@ def rechercher(
 
     init_tables(db)
 
-    # Filtre par phase / pays (optionnel).
-    where = "WHERE d.actif = 1"
+    # Filtre par phase / pays (optionnel). `d.actif` seul est portable :
+    # SQLite lit 1 comme truthy, Postgres lit TRUE.
+    where = "WHERE d.actif"
     params: dict[str, object] = {}
     if phase:
         where += " AND (p.phase = :phase OR d.phase = :phase)"
@@ -293,21 +309,24 @@ def ajouter_document(
     """Ajoute un document source et retourne son id."""
     init_tables(db)
     now = datetime.utcnow().isoformat(timespec="seconds")
+    # Le booléen `actif` et la récupération de l'id doivent s'adapter au
+    # dialecte : Postgres refuse `= 1` sur BOOLEAN, et son `SERIAL` ne
+    # renseigne pas `lastrowid` — on utilise `RETURNING id`, supporté par
+    # SQLite (3.35+) et Postgres.
+    actif_val = "TRUE" if _est_postgres(db) else "1"
     r = db.execute(
         text(
-            """
+            f"""
             INSERT INTO rag_documents (organisme, titre, url, version, phase, pays, actif, ingere_le)
-            VALUES (:organisme, :titre, :url, :version, :phase, :pays, 1, :now)
+            VALUES (:organisme, :titre, :url, :version, :phase, :pays, {actif_val}, :now)
+            RETURNING id
             """
         ),
         {"organisme": organisme, "titre": titre, "url": url, "version": version,
          "phase": phase, "pays": pays, "now": now},
     )
+    doc_id = r.scalar()
     db.commit()
-    # SQLAlchemy 2 : on relit l'id via lastrowid (fonctionne SQLite + Postgres serial).
-    doc_id = r.lastrowid or db.execute(
-        text("SELECT MAX(id) FROM rag_documents"),
-    ).scalar()
     return int(doc_id)
 
 
@@ -343,7 +362,7 @@ def ajouter_passage(
 def etat(db: Session) -> dict:
     """État de la base RAG, pour le diagnostic."""
     init_tables(db)
-    docs = db.execute(text("SELECT COUNT(*) FROM rag_documents WHERE actif = 1")).scalar() or 0
+    docs = db.execute(text("SELECT COUNT(*) FROM rag_documents WHERE actif")).scalar() or 0
     passages = db.execute(text("SELECT COUNT(*) FROM rag_passages")).scalar() or 0
     vecs = db.execute(
         text("SELECT COUNT(*) FROM rag_passages WHERE embedding IS NOT NULL AND embedding != ''"),
