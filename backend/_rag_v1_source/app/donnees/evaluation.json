@@ -1,0 +1,45 @@
+{
+  "_avertissement": "Jeu d'évaluation du RAG. Les questions sont formulées comme un étudiant les pose réellement : phrases incomplètes, vocabulaire courant plutôt qu'administratif, parfois une seule expression. Elles ne reprennent jamais les mots du passage attendu — sinon la mesure ne dirait rien d'autre que « la recherche plein texte sait retrouver un mot exact ». Chaque question porte le passage attendu, et non la phase seule : c'est le passage qui décide de la qualité de la réponse.",
+  "_methode": "Pour chaque question, on regarde si le passage attendu figure parmi les k premiers résultats. La mesure principale est le rappel à 3, parce que l'agent envoie les trois premiers passages au modèle. Le rappel à 1 est donné à titre indicatif.",
+  "_limites": [
+    "30 questions, écrites par l'équipe et non collectées auprès d'étudiants réels. Un biais de formulation subsiste : nous écrivons ce que nous imaginons qu'un étudiant demande.",
+    "Un seul passage attendu par question, alors que plusieurs passages peuvent être pertinents. La mesure est donc pessimiste : une réponse jugée fausse peut être utile.",
+    "Corpus de 30 passages seulement. Les résultats ne se transposent pas à un corpus de plusieurs milliers."
+  ],
+  "questions": [
+    {"question": "je sais pas par où commencer pour partir étudier en france", "passage_attendu": 1, "phase": "candidature"},
+    {"question": "comment je crée mon compte sur le site", "passage_attendu": 2, "phase": "candidature"},
+    {"question": "quels papiers je dois réunir pour mon dossier", "passage_attendu": 3, "phase": "candidature"},
+    {"question": "combien d'écoles je peux demander", "passage_attendu": 4, "phase": "candidature"},
+    {"question": "il faut payer quelque chose pour candidater ?", "passage_attendu": 5, "phase": "candidature"},
+    {"question": "mon dossier est bloqué depuis des semaines, c'est normal", "passage_attendu": 6, "phase": "candidature"},
+    {"question": "je suis à brazzaville, ça se passe comment chez nous", "passage_attendu": 27, "phase": "candidature"},
+    {"question": "je veux aller dans une école privée, je passe par où", "passage_attendu": 28, "phase": "candidature"},
+    {"question": "je suis au cameroun, la procédure est la même", "passage_attendu": 29, "phase": "candidature"},
+    {"question": "j'ai fait le GCE, est-ce que ça pose problème", "passage_attendu": 30, "phase": "candidature"},
+
+    {"question": "on va me demander quoi pendant le rendez-vous", "passage_attendu": 7, "phase": "entretien"},
+    {"question": "j'ai changé de filière en cours de route, comment j'explique ça", "passage_attendu": 8, "phase": "entretien"},
+    {"question": "je connais mal l'école que j'ai choisie", "passage_attendu": 9, "phase": "entretien"},
+    {"question": "ils vont me demander si je compte rentrer chez moi ?", "passage_attendu": 10, "phase": "entretien"},
+    {"question": "comment je prouve que j'ai les moyens", "passage_attendu": 11, "phase": "entretien"},
+    {"question": "ça dure combien de temps et ça se passe où", "passage_attendu": 12, "phase": "entretien"},
+
+    {"question": "à partir de quand je peux faire les démarches à l'ambassade", "passage_attendu": 13, "phase": "visa"},
+    {"question": "qu'est-ce que je dois apporter au rendez-vous consulaire", "passage_attendu": 14, "phase": "visa"},
+    {"question": "combien d'argent je dois avoir sur mon compte", "passage_attendu": 15, "phase": "visa"},
+    {"question": "je n'ai pas encore trouvé où dormir en france", "passage_attendu": 16, "phase": "visa"},
+    {"question": "j'ai eu mon visa, et maintenant", "passage_attendu": 17, "phase": "visa"},
+    {"question": "on m'a dit non, qu'est-ce que je peux faire", "passage_attendu": 18, "phase": "visa"},
+
+    {"question": "comment avoir une chambre du crous", "passage_attendu": 19, "phase": "logement"},
+    {"question": "je n'ai personne pour se porter garant", "passage_attendu": 20, "phase": "logement"},
+    {"question": "est-ce que je peux toucher quelque chose pour payer mon loyer", "passage_attendu": 21, "phase": "logement"},
+    {"question": "un monsieur me demande de virer trois mois d'avance avant de visiter", "passage_attendu": 22, "phase": "logement"},
+
+    {"question": "je viens d'arriver, il paraît qu'il y a une formalité en ligne", "passage_attendu": 23, "phase": "arrivee"},
+    {"question": "comment je me fais soigner ici", "passage_attendu": 24, "phase": "arrivee"},
+    {"question": "il me faut un rib pour l'école", "passage_attendu": 25, "phase": "arrivee"},
+    {"question": "j'aimerais faire un petit boulot à côté des cours", "passage_attendu": 26, "phase": "arrivee"}
+  ]
+}

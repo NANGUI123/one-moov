@@ -1,0 +1,232 @@
+{
+  "_avertissement": "Corpus d'amorçage rédigé à partir de la procédure Études en France. Il décrit le PROCÉDURAL uniquement : aucune valeur chiffrée, aucune date limite, aucun montant. Ces éléments vivent dans la table fait_critique, sourcés et datés. Ce corpus doit être relu et complété par l'équipe à partir des documents officiels avant toute utilisation réelle.",
+
+  "documents": [
+    {
+      "reference": "cf_procedure_eef",
+      "titre": "La procédure Études en France, étape par étape",
+      "url_officielle": "https://www.campusfrance.org/fr/etudes-en-france-procedure",
+      "organisme": "Campus France",
+      "pays": null,
+      "version": 1,
+      "passages": [
+        {
+          "titre": "À qui s'adresse la procédure Études en France",
+          "phase": "candidature",
+          "contenu": "La procédure Études en France s'applique aux étudiants résidant dans un pays où elle a été mise en place, dont le Cameroun et le Congo-Brazzaville. Elle est obligatoire pour la plupart des candidatures en première année de licence, en licence, en master et dans les écoles connectées à la procédure. Elle centralise la candidature, l'entretien et la préparation de la demande de visa dans un même espace personnel. Un candidat qui relève de cette procédure ne peut pas s'inscrire directement auprès des établissements connectés : il passe par son espace Études en France."
+        },
+        {
+          "titre": "Créer son dossier et remplir son espace personnel",
+          "phase": "candidature",
+          "contenu": "La première démarche consiste à créer un compte sur la plateforme Études en France de son pays de résidence. L'espace personnel se remplit dans l'ordre : informations personnelles, parcours scolaire et universitaire année par année, compétences linguistiques, puis projet d'études. Chaque année d'études doit être renseignée, y compris les redoublements et les réorientations. Un parcours incomplet ou incohérent est le premier motif de blocage du dossier. Le candidat rédige aussi une lettre de motivation par formation demandée."
+        },
+        {
+          "titre": "Les pièces justificatives à préparer",
+          "phase": "candidature",
+          "contenu": "Le dossier demande les relevés de notes des dernières années d'études, les diplômes obtenus, l'attestation de réussite au baccalauréat ou son équivalent, une pièce d'identité en cours de validité, et une photo d'identité récente. Les documents rédigés dans une langue autre que le français doivent être accompagnés d'une traduction par un traducteur assermenté. Les copies doivent être lisibles et complètes : un document tronqué ou flou est renvoyé au candidat, ce qui fait perdre du temps sur une campagne où les délais sont serrés."
+        },
+        {
+          "titre": "Choisir ses formations",
+          "phase": "candidature",
+          "contenu": "Le candidat sélectionne plusieurs formations dans son espace personnel. Le nombre de vœux autorisé varie selon le pays et selon le type d'établissement, et figure dans l'espace personnel. Il est conseillé de diversifier les vœux : un établissement très demandé, plusieurs établissements aux critères plus accessibles, et si possible plusieurs villes. Chaque vœu doit être justifié par une lettre de motivation propre, qui explique le lien entre le parcours du candidat, la formation demandée et son projet professionnel."
+        },
+        {
+          "titre": "Le paiement des frais de dossier",
+          "phase": "candidature",
+          "contenu": "Le dossier n'est examiné qu'après règlement des frais de dossier Campus France. Le montant et les modalités varient selon le pays, et sont indiqués dans l'espace personnel du candidat. Le paiement se fait généralement par versement bancaire, avec un bordereau à compléter en y reportant le numéro de dossier Campus France avant le nom du candidat. Le justificatif de paiement doit ensuite être déposé dans l'espace personnel. Un paiement effectué sans le numéro de dossier est difficile à rattacher et retarde le traitement."
+        },
+        {
+          "titre": "La validation du dossier par Campus France",
+          "phase": "candidature",
+          "contenu": "Une fois le dossier complet et les frais réglés, Campus France vérifie les pièces et la cohérence du parcours. Le candidat est ensuite convoqué à l'entretien. Tant que le dossier n'est pas validé, il reste modifiable : c'est le moment de corriger une erreur de saisie ou d'ajouter une pièce manquante. Après validation, les modifications ne sont plus possibles pour la campagne en cours."
+        }
+      ]
+    },
+
+    {
+      "reference": "cf_entretien",
+      "titre": "L'entretien Campus France",
+      "url_officielle": "https://www.campusfrance.org/fr/etudes-en-france-procedure",
+      "organisme": "Campus France",
+      "pays": null,
+      "version": 1,
+      "passages": [
+        {
+          "titre": "Ce que l'entretien évalue",
+          "phase": "entretien",
+          "contenu": "L'entretien pédagogique n'est pas un examen de connaissances. Il vérifie que le projet d'études est réel, cohérent et réfléchi. Le jury cherche à comprendre pourquoi ce candidat veut cette formation précise, ce qu'il en connaît, ce qu'il compte en faire, et comment il financera son séjour. Un candidat qui récite une lettre de motivation sans pouvoir l'expliquer donne une mauvaise impression. Un candidat qui assume une réorientation en expliquant ce qu'elle lui a appris donne une bonne impression."
+        },
+        {
+          "titre": "Préparer la cohérence de son parcours",
+          "phase": "entretien",
+          "contenu": "Le point le plus souvent examiné est la cohérence entre le parcours passé et la formation demandée. Une réorientation, un redoublement ou une année d'interruption ne sont pas éliminatoires, mais ils doivent être expliqués sans détour. Le candidat gagne à préparer un récit clair de son parcours, année par année, avec ce que chaque étape lui a apporté. Une apparente régression de niveau, par exemple une formation qui semble inférieure au niveau déjà atteint, doit être justifiée par la logique du système éducatif français et par le projet visé."
+        },
+        {
+          "titre": "Connaître sa formation et son établissement",
+          "phase": "entretien",
+          "contenu": "Le jury demande souvent ce que le candidat sait de la formation demandée et de l'établissement qui l'accueillerait. Avant l'entretien, il faut avoir lu la maquette pédagogique de la formation, connaître quelques enseignements caractéristiques, savoir quels débouchés elle prépare, et pouvoir dire pourquoi cet établissement plutôt qu'un autre. Une réponse vague sur ce point affaiblit tout le reste du dossier."
+        },
+        {
+          "titre": "Le projet professionnel et le retour au pays",
+          "phase": "entretien",
+          "contenu": "Le candidat est interrogé sur ce qu'il compte faire après son diplôme. Un projet professionnel précis, relié au marché du travail de son pays d'origine ou de la région, est mieux reçu qu'une intention générale. Il n'est pas nécessaire de promettre un retour immédiat, mais il faut pouvoir expliquer en quoi la formation demandée sert un projet identifiable, et non un simple souhait de partir."
+        },
+        {
+          "titre": "La question du financement",
+          "phase": "entretien",
+          "contenu": "Le jury vérifie que le candidat a une idée réaliste du coût de ses études et de sa vie sur place, et qu'il sait qui financera. Il faut pouvoir nommer la source du financement, parents, famille, bourse ou épargne, et montrer qu'on a anticipé le logement, les transports et l'assurance. Les montants exacts à justifier auprès du consulat relèvent de la demande de visa et sont indiqués par les autorités compétentes."
+        },
+        {
+          "titre": "Le déroulement pratique",
+          "phase": "entretien",
+          "contenu": "L'entretien se déroule dans l'espace Campus France du pays, parfois à distance selon les périodes et les pays. Il dure généralement une vingtaine de minutes. Le candidat se présente avec sa convocation et une pièce d'identité. Il est attendu qu'il s'exprime en français, sauf pour les formations dispensées en anglais où le niveau d'anglais peut également être évalué. Arriver en avance et prévoir les aléas de transport fait partie de la préparation."
+        }
+      ]
+    },
+
+    {
+      "reference": "visa_etudiant",
+      "titre": "La demande de visa étudiant",
+      "url_officielle": "https://france-visas.gouv.fr",
+      "organisme": "France-Visas",
+      "pays": null,
+      "version": 1,
+      "passages": [
+        {
+          "titre": "Quand déposer sa demande",
+          "phase": "visa",
+          "contenu": "La demande de visa se prépare dès réception d'une acceptation dans un établissement. Elle se fait sur le portail France-Visas, qui génère un formulaire et une liste de pièces adaptée à la situation du demandeur. Le rendez-vous au centre de dépôt ou au consulat se prend ensuite, et les créneaux sont limités en période de forte demande. Commencer tôt est le meilleur moyen d'éviter un départ retardé."
+        },
+        {
+          "titre": "Les pièces généralement demandées",
+          "phase": "visa",
+          "contenu": "Le dossier comprend le formulaire de demande complété et signé, un passeport en cours de validité couvrant la durée du séjour, des photos d'identité aux normes, l'attestation Campus France, la preuve d'inscription ou d'acceptation dans l'établissement, les justificatifs de ressources, un justificatif d'hébergement en France, et le justificatif du paiement des frais de dossier. La liste exacte est générée par France-Visas selon le profil : c'est elle qui fait foi, et non une liste trouvée ailleurs."
+        },
+        {
+          "titre": "Justifier de ses ressources",
+          "phase": "visa",
+          "contenu": "Le demandeur doit prouver qu'il dispose de moyens suffisants pour vivre en France pendant ses études. Cette preuve prend généralement la forme d'une somme bloquée sur un compte bancaire, d'une attestation de prise en charge par un garant, ou d'une notification de bourse. Les montants exigés et les formes acceptées dépendent du pays et de la situation, et sont indiqués par le consulat et par France-Visas. Un dossier dont les ressources sont mal justifiées est un motif fréquent de refus."
+        },
+        {
+          "titre": "L'hébergement en France",
+          "phase": "visa",
+          "contenu": "Une preuve d'hébergement est demandée. Il peut s'agir d'un contrat de location, d'une attestation de résidence étudiante, ou d'une attestation d'accueil d'un particulier accompagnée de ses justificatifs. Le document doit être lisible, complet, et cohérent avec le reste du dossier : une erreur de date de naissance ou une adresse incomplète sur une attestation d'hébergement est relevée et fragilise la demande."
+        },
+        {
+          "titre": "Après l'obtention du visa",
+          "phase": "visa",
+          "contenu": "Le visa long séjour valant titre de séjour doit être validé en ligne après l'arrivée en France, dans le délai indiqué sur le visa. Sans cette validation, le séjour devient irrégulier et le retour en France après un voyage à l'étranger n'est plus garanti. La validation se fait sur le site de l'administration des étrangers en France, avec le numéro de visa, la date d'entrée et une adresse en France."
+        },
+        {
+          "titre": "En cas de refus",
+          "phase": "visa",
+          "contenu": "Un refus de visa est notifié avec un motif. Le demandeur peut former un recours devant la commission de recours contre les décisions de refus de visa, dans le délai indiqué sur la notification. Ce recours préalable est obligatoire avant toute saisine du juge administratif. Selon la situation, redéposer une demande renforcée peut être plus efficace qu'un recours, en particulier quand le motif porte sur la cohérence du projet, qui peut être retravaillée."
+        }
+      ]
+    },
+
+    {
+      "reference": "logement_etudiant",
+      "titre": "Se loger en France quand on est étudiant étranger",
+      "url_officielle": "https://www.etudiant.gouv.fr/fr/se-loger-1340",
+      "organisme": "Etudiant.gouv",
+      "pays": null,
+      "version": 1,
+      "passages": [
+        {
+          "titre": "Les résidences universitaires",
+          "phase": "logement",
+          "contenu": "Les résidences gérées par les Crous proposent les loyers les plus accessibles, mais les places sont limitées et attribuées selon des critères sociaux et des délais de candidature précis. Les étudiants internationaux passés par Campus France peuvent bénéficier de dispositifs de réservation spécifiques selon les académies. La demande se fait en ligne et les périodes de dépôt sont courtes : rater la fenêtre signifie attendre l'année suivante."
+        },
+        {
+          "titre": "Le parc privé et les garanties demandées",
+          "phase": "logement",
+          "contenu": "Dans le parc privé, le propriétaire demande généralement un garant résidant en France, des justificatifs de ressources et un dépôt de garantie. L'absence de garant est le principal obstacle pour un étudiant étranger. Des dispositifs publics de garantie locative existent pour y répondre, notamment la garantie Visale, gratuite et destinée entre autres aux étudiants. Il est utile d'en faire la demande avant même d'avoir trouvé un logement, afin de présenter un dossier complet dès la première visite."
+        },
+        {
+          "titre": "Les aides au logement",
+          "phase": "logement",
+          "contenu": "Les étudiants étrangers en séjour régulier peuvent demander une aide au logement auprès de la caisse d'allocations familiales. La demande se fait en ligne après l'entrée dans le logement, et nécessite un titre de séjour valide, un relevé d'identité bancaire français et le contrat de location. Le versement intervient après instruction, ce qui peut prendre plusieurs semaines : il faut pouvoir payer les premiers loyers sans compter sur cette aide."
+        },
+        {
+          "titre": "Éviter les arnaques au logement",
+          "phase": "logement",
+          "contenu": "Les étudiants étrangers sont une cible fréquente d'escroqueries au logement. Les signaux d'alerte sont constants : un loyer anormalement bas, un propriétaire qui dit être à l'étranger, l'impossibilité de visiter, et surtout une demande de versement avant toute signature de contrat. Aucune somme ne doit être versée avant d'avoir signé un bail et vérifié l'identité du bailleur. En cas de doute, l'établissement d'accueil ou le Crous peuvent orienter vers des offres vérifiées."
+        }
+      ]
+    },
+
+    {
+      "reference": "arrivee_installation",
+      "titre": "Les démarches des premières semaines en France",
+      "url_officielle": "https://www.etudiant.gouv.fr",
+      "organisme": "Etudiant.gouv",
+      "pays": null,
+      "version": 1,
+      "passages": [
+        {
+          "titre": "Valider son titre de séjour",
+          "phase": "arrivee",
+          "contenu": "La validation du visa valant titre de séjour est la première démarche à effectuer après l'arrivée, dans le délai indiqué sur le visa. Elle se fait en ligne et donne lieu à une confirmation à conserver. C'est cette validation qui ouvre l'accès aux autres droits : sécurité sociale, aide au logement, et liberté de circulation dans l'espace Schengen."
+        },
+        {
+          "titre": "S'inscrire à la sécurité sociale étudiante",
+          "phase": "arrivee",
+          "contenu": "L'affiliation à la sécurité sociale est gratuite pour les étudiants étrangers inscrits dans un établissement d'enseignement supérieur français. Elle se demande en ligne sur le site dédié aux étudiants étrangers, avec le titre de séjour validé, un justificatif d'inscription et un relevé d'identité bancaire. L'affiliation permet le remboursement des soins et conditionne la souscription d'une complémentaire santé."
+        },
+        {
+          "titre": "Ouvrir un compte bancaire",
+          "phase": "arrivee",
+          "contenu": "Un compte bancaire français est nécessaire pour payer un loyer, recevoir une aide au logement et être remboursé par la sécurité sociale. L'ouverture demande une pièce d'identité, un justificatif de domicile et un justificatif d'inscription dans l'établissement. Certaines banques proposent des offres dédiées aux étudiants internationaux. Le relevé d'identité bancaire obtenu à l'ouverture sert ensuite pour toutes les autres démarches."
+        },
+        {
+          "titre": "Travailler pendant ses études",
+          "phase": "arrivee",
+          "contenu": "Un étudiant étranger titulaire d'un titre de séjour valide peut travailler en France dans une limite annuelle d'heures fixée par la réglementation, sans autorisation de travail supplémentaire. Le travail étudiant complète un budget mais ne peut pas le constituer : il ne doit pas être présenté comme la source principale de financement dans une demande de visa, et il ne doit pas compromettre l'assiduité aux cours, qui conditionne le renouvellement du titre de séjour."
+        }
+      ]
+    },
+
+    {
+      "reference": "cf_procedure_congo",
+      "titre": "Spécificités de la procédure au Congo-Brazzaville",
+      "url_officielle": "https://www.campusfrance.org/fr/congo",
+      "organisme": "Campus France Congo",
+      "pays": "Congo-Brazzaville",
+      "version": 1,
+      "passages": [
+        {
+          "titre": "Déroulement au Congo-Brazzaville",
+          "phase": "candidature",
+          "contenu": "Les candidats résidant au Congo-Brazzaville passent par l'espace Campus France du pays. Le dossier se constitue en ligne, puis les frais de dossier sont réglés par versement bancaire auprès de l'établissement désigné par l'Institut français. Le bordereau de versement doit porter le numéro Campus France du candidat avant son nom, faute de quoi le paiement ne peut pas être rattaché au dossier. Le justificatif est ensuite déposé dans l'espace personnel."
+        },
+        {
+          "titre": "La voie des établissements privés",
+          "phase": "candidature",
+          "contenu": "Un candidat peut aussi postuler directement auprès d'établissements privés non connectés à la procédure, en parallèle de sa candidature dans le public ou après un refus. Cette voie n'exempte pas de l'entretien ni de la procédure de visa : l'acceptation par un établissement privé doit ensuite être portée dans le dossier Études en France. Mener les deux voies de front est une stratégie courante pour ne pas perdre une campagne entière."
+        }
+      ]
+    },
+
+    {
+      "reference": "cf_procedure_cameroun",
+      "titre": "Spécificités de la procédure au Cameroun",
+      "url_officielle": "https://www.campusfrance.org/fr/cameroun",
+      "organisme": "Campus France Cameroun",
+      "pays": "Cameroun",
+      "version": 1,
+      "passages": [
+        {
+          "titre": "Déroulement au Cameroun",
+          "phase": "candidature",
+          "contenu": "Les candidats résidant au Cameroun déposent leur dossier sur l'espace Études en France du pays, avec des antennes à Yaoundé et à Douala. Le calendrier de campagne, le nombre de vœux et les modalités de paiement des frais de dossier sont précisés dans l'espace personnel et sur le site de Campus France Cameroun. Les candidats issus du système anglophone doivent veiller à la traduction assermentée de leurs relevés et à la justification de leur niveau de français pour les formations dispensées en français."
+        },
+        {
+          "titre": "Candidats du système anglophone",
+          "phase": "candidature",
+          "contenu": "Le Cameroun a deux systèmes éducatifs, francophone et anglophone. Un candidat issu du système anglophone doit faire traduire ses relevés et attestations par un traducteur assermenté, et justifier de son niveau de français par un test reconnu si la formation visée est dispensée en français. Des formations dispensées en anglais existent en France et constituent une option à ne pas négliger : elles évitent le passage par un test de français tout en permettant d'étudier en France."
+        }
+      ]
+    }
+  ]
+}
