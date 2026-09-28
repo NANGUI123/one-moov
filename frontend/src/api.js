@@ -24,11 +24,13 @@ async function req(method, path, body) {
 }
 
 export const api = {
-  register: (email, password, prenom) => req("POST", "/auth/register", { email, password, prenom }),
+  register: (email, password, prenom, pays_residence = "") =>
+    req("POST", "/auth/register", { email, password, prenom, pays_residence }),
   login: (email, password) => req("POST", "/auth/login", { email, password }),
   resendVerif: (email) => req("POST", "/auth/resend", { email }),
   forgot: (email) => req("POST", "/auth/forgot", { email }),
   me: () => req("GET", "/auth/me"),
+  paysDisponibles: () => req("GET", "/auth/pays"),
 
   // Pistes / tableau de bord (feature 14)
   listPistes: () => req("GET", "/pistes"),

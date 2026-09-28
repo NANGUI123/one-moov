@@ -132,16 +132,33 @@ function Header({ prenom, onHome, onLogout, theme, onToggleTheme }) {
 function Auth({ onAuth }) {
   const [mode, setMode] = useState("register");   // register | login | forgot
   const [email, setEmail] = useState(""); const [pw, setPw] = useState(""); const [pn, setPn] = useState("");
+  const [pays, setPays] = useState("");           // Cameroun | Congo-Brazzaville | ""
+  const [voirPw, setVoirPw] = useState(false);    // toggle œil sur le mot de passe
   const [err, setErr] = useState(""); const [info, setInfo] = useState(""); const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState(null);   // {email, demo_lien, envoye} après inscription
   const [unverified, setUnverified] = useState(false);
+  const [paysDispo, setPaysDispo] = useState(null);  // liste chargée depuis l'API
+
+  // Pays chargés en une fois : la liste est petite et servie sans jeton.
+  // Un repli local évite d'afficher un écran vide si l'API est encore froide.
+  useEffect(() => {
+    if (mode !== "register") return;
+    api.paysDisponibles()
+      .then((d) => setPaysDispo(d.pays))
+      .catch(() => setPaysDispo([
+        { code: "Cameroun", libelle: "Cameroun", campus_france: "Campus France Cameroun", drapeau: "🇨🇲" },
+        { code: "Congo-Brazzaville", libelle: "Congo-Brazzaville", campus_france: "Campus France Congo", drapeau: "🇨🇬" },
+      ]));
+  }, [mode]);
 
   const reset = () => { setErr(""); setInfo(""); };
 
   const submitRegister = async () => {
-    reset(); setBusy(true);
+    reset();
+    if (!pays) { setErr("Choisis d'abord ton pays de résidence."); return; }
+    setBusy(true);
     try {
-      const r = await api.register(email, pw, pn);
+      const r = await api.register(email, pw, pn, pays);
       if (r.access_token) { setToken(r.access_token); onAuth(r.prenom || pn); return; }
       setPending({ email: r.email, demo_lien: r.demo_lien, envoye: r.envoye });
     } catch (e) { setErr(e.message); }
@@ -191,21 +208,69 @@ function Auth({ onAuth }) {
     );
   }
 
+  const peutSoumettre = mode !== "register" ? true : (pays && email && pw);
+
   return (
     <div className="card">
-      <h2 style={{ marginTop: 0 }}>
-        {mode === "register" ? "Créer un compte" : mode === "forgot" ? "Mot de passe oublié" : "Se connecter"}
+      <h2 style={{ marginTop: 0, textAlign: "center" }}>
+        {mode === "register" ? "Créer mon compte" : mode === "forgot" ? "Mot de passe oublié" : "Se connecter"}
       </h2>
-      <p className="muted">Votre compte vous permet de retrouver vos projets d'un appareil à l'autre.</p>
+      {mode === "register" && (
+        <p className="muted" style={{ textAlign: "center", marginTop: 0 }}>
+          Choisis d'abord ton pays de résidence, puis renseigne ton prénom, ton e-mail et ton mot de passe.
+        </p>
+      )}
+      {mode !== "register" && (
+        <p className="muted" style={{ textAlign: "center", marginTop: 0 }}>
+          Votre compte vous permet de retrouver vos projets d'un appareil à l'autre.
+        </p>
+      )}
 
-      {mode === "register" && <input className="inp" placeholder="Prénom" value={pn} onChange={(e) => setPn(e.target.value)} />}
-      <input className="inp" placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} />
+      {mode === "register" && (
+        <>
+          <div style={{ fontWeight: 600, color: C.ink, marginTop: 8, marginBottom: 4 }}>Pays de résidence</div>
+          <div className="muted" style={{ marginBottom: 8 }}>
+            Ce choix adapte la procédure Campus France et les opérateurs de paiement mobile disponibles.
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+            {(paysDispo || []).map((p) => (
+              <CartePays key={p.code} pays={p} choisi={pays === p.code} onClick={() => setPays(p.code)} />
+            ))}
+            {paysDispo === null && <div className="muted">Chargement des pays…</div>}
+          </div>
+        </>
+      )}
+
+      {mode === "register" && (
+        <input className="inp" placeholder="Prénom" value={pn} onChange={(e) => setPn(e.target.value)} />
+      )}
+      <input className="inp" placeholder="E-mail" type="email" autoComplete="email"
+        value={email} onChange={(e) => setEmail(e.target.value)} />
+
       {mode !== "forgot" && (
         <>
-          <input className="inp" type="password" placeholder="Mot de passe" value={pw}
-            onChange={(e) => setPw(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && (mode === "register" ? submitRegister() : submitLogin())} />
-          {mode === "register" && <div className="muted">8 caractères min., au moins une lettre et un chiffre.</div>}
+          <div style={{ position: "relative" }}>
+            <input className="inp" type={voirPw ? "text" : "password"} placeholder="Mot de passe"
+              autoComplete={mode === "register" ? "new-password" : "current-password"}
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && (mode === "register" ? submitRegister() : submitLogin())}
+              style={{ paddingRight: 42 }} />
+            <button type="button" onClick={() => setVoirPw((v) => !v)}
+              aria-label={voirPw ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+              style={{
+                position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)",
+                background: "transparent", border: 0, color: C.muted, cursor: "pointer",
+                padding: 8, display: "flex", alignItems: "center",
+              }}>
+              {voirPw ? <IconeOeilBarre /> : <IconeOeil />}
+            </button>
+          </div>
+          {mode === "register" && (
+            <div className="muted" style={{ marginTop: 4 }}>
+              Au moins 8 caractères, avec une lettre et un chiffre. Une phrase dont tu te souviens vaut mieux qu'un mot compliqué.
+            </div>
+          )}
         </>
       )}
 
@@ -213,12 +278,12 @@ function Auth({ onAuth }) {
       {unverified && <div className="muted" style={{ margin: "4px 0" }}><span className="link" onClick={resend}>Renvoyer l'e-mail de vérification</span></div>}
       {info && <div className="muted" style={{ margin: "6px 0" }}>{info}</div>}
 
-      <button className="btn" disabled={busy} style={{ width: "100%", marginTop: 6 }}
+      <button className="btn" disabled={busy || !peutSoumettre} style={{ width: "100%", marginTop: 10 }}
         onClick={mode === "register" ? submitRegister : mode === "forgot" ? submitForgot : submitLogin}>
         {mode === "register" ? "Créer mon compte" : mode === "forgot" ? "Envoyer le lien" : "Connexion"}
       </button>
 
-      <div style={{ marginTop: 12, textAlign: "center", display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ marginTop: 14, textAlign: "center", display: "flex", flexDirection: "column", gap: 8 }}>
         <span className="link muted" onClick={() => { reset(); setMode(mode === "register" ? "login" : "register"); }}>
           {mode === "register" ? "J'ai déjà un compte" : "Créer un compte"}
         </span>
@@ -226,6 +291,49 @@ function Auth({ onAuth }) {
         {mode === "forgot" && <span className="link muted" onClick={() => { reset(); setMode("login"); }}>Retour à la connexion</span>}
       </div>
     </div>
+  );
+}
+
+function CartePays({ pays, choisi, onClick }) {
+  return (
+    <button type="button" onClick={onClick}
+      aria-pressed={choisi}
+      style={{
+        display: "flex", alignItems: "center", gap: 12, textAlign: "left",
+        background: choisi ? "var(--teal-soft)" : "var(--surface)",
+        border: `1.5px solid ${choisi ? "var(--teal)" : "var(--line)"}`,
+        borderRadius: 12, padding: "12px 14px", cursor: "pointer",
+        transition: "border-color .15s, background-color .15s",
+        width: "100%",
+      }}>
+      <span style={{ fontSize: 28, lineHeight: 1 }} aria-hidden="true">{pays.drapeau}</span>
+      <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+        <span style={{ fontWeight: 700, color: C.ink }}>{pays.libelle}</span>
+        <span className="muted" style={{ fontSize: 12 }}>{pays.campus_france}</span>
+      </span>
+      {choisi && <span aria-hidden="true" style={{ marginLeft: "auto", color: C.teal, fontWeight: 700 }}>✓</span>}
+    </button>
+  );
+}
+
+function IconeOeil() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+function IconeOeilBarre() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a19.6 19.6 0 0 1 5.06-5.94" />
+      <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a19.5 19.5 0 0 1-3.17 4.19" />
+      <path d="M14.12 14.12A3 3 0 0 1 9.88 9.88" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
   );
 }
 
