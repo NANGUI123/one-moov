@@ -1,0 +1,15 @@
+# Les secrets ne montent jamais dans une image : docker compose passe le
+# fichier .env au conteneur par env_file, au démarrage, sans le graver dans
+# une couche d'image que n'importe qui peut relire.
+.env
+.env.*
+!.env.exemple
+
+__pycache__
+*.pyc
+.pytest_cache
+.venv
+venv
+
+.git
+*.log

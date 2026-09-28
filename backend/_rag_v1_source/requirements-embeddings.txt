@@ -1,0 +1,4 @@
+# Embeddings multilingues. Séparé du reste car le téléchargement de torch
+# est lourd. Sans ce paquet, la recherche bascule sur le plein texte seul,
+# ce que les fonctions SQL gèrent proprement.
+sentence-transformers==3.3.1

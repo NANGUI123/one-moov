@@ -1,127 +1,228 @@
 # One Moov
 
-Accompagnement des étudiants du Cameroun et du Congo-Brazzaville vers les
-études en France, de l'orientation jusqu'aux premières semaines sur place.
+Accompagnement des étudiants d'Afrique francophone (Cameroun, Congo-Brazzaville…)
+vers les études en France : orientation gratuite, feuille de route personnalisée,
+chatbot procédural sourcé, entretien Campus France blanc, aide à la contestation
+d'un refus.
 
-Deux agents : un agent d'orientation, qui construit le profil et produit une
-feuille de route ; un chatbot prémium, débloqué après la feuille de route,
-qui répond aux questions de procédure en citant ses sources et prépare à
-l'entretien.
-
-
+> Ce dépôt fusionne deux projets internes :
+>
+> * `one_moov_v1` — le **front React** propre et le socle **API FastAPI**
+>   (auth JWT + vérification e-mail, orientation, roadmap, paiement CinetPay,
+>   chatbot, aides IA, vérification RNCP par LLM connecté au web).
+> * `One_Moov_RAG_V1_Integration` — la **couche RAG hybride** (procédures
+>   officielles, faits vérifiés, fusion lexicale + vectorielle) et son
+>   corpus procédural d'amorçage.
+>
+> Résultat : le front V1 branché sur un back V1 enrichi d'un **conseiller
+> d'orientation RAG-aware** et d'un **chatbot qui cite ses sources**.
 
 ---
 
 ## Le principe qui gouverne le reste
 
-> **Le factuel critique va en base SQL. Le procédural explicatif va au RAG.
-> Le modèle propose, la donnée fait autorité.**
+> **Les faits critiques vivent en base. Le procédural explicatif vit dans le RAG.
+> Le LLM propose, la donnée fait autorité.**
 
-Un montant, un délai, un seuil de ressources, un code RNCP ne sont jamais
-produits par le modèle. Ils viennent d'une table, avec leur source et leur
-date de vérification. Le modèle rédige l'explication autour, à partir de
-passages officiels qu'il doit citer.
+Un montant, un délai, un seuil de ressources, un code RNCP ne sont jamais produits
+par le modèle. Ils viennent d'une table (`formations`, `rncp_fiches`) ou d'un
+passage indexé, avec leur source et leur date de vérification. Le LLM rédige
+l'explication autour, à partir de passages officiels qu'il **doit citer** avec
+`[1]` `[2]` : l'interface transforme ces numéros en vraies références.
 
-C'est la réponse à la faiblesse connue des agents conversationnels : un
-modèle interrogé sur le montant du compte bloqué produira un chiffre
-plausible et faux, avec le même aplomb que s'il était juste. Un étudiant qui
-organise son départ sur ce chiffre perd son dossier.
+C'est la réponse à la faiblesse connue des agents : un modèle interrogé sur le
+montant du compte bloqué produira un chiffre plausible et faux, avec le même
+aplomb qu'un vrai. Un étudiant qui organise son départ sur ce chiffre perd son
+dossier.
 
 ---
 
-## L'architecture
+## Le parcours bout-en-bout
 
-| Couche | Technologie | Rôle |
-|---|---|---|
-| Interface | React 18 + Vite 6, PWA | Écrans, conversation, installation sur le téléphone |
-| API | FastAPI (Python 3.12) | Les deux agents, les comptes, les contrats de données |
-| Modèle | Orchestrateur à 3 niveaux | Hugging Face → secours automatique → mode guidé sans IA |
-| Connaissance | RAG sur PostgreSQL + pgvector | Les procédures officielles, citées en source |
-| Référentiel | PostgreSQL 16 | Villes, établissements, faits vérifiés, fiches RNCP |
-| Comptes | JWT + scrypt | Retrouver son parcours d'un téléphone à l'autre |
+Repris du schéma d'architecture (`docs/architecture.md`) :
 
-Le détail des choix, et surtout des options écartées, est dans
-[`docs/One-Moov-fiche-technique.docx`](docs/).
+| Étape | Acteur | Où |
+|-------|--------|----|
+| 1  Inscription (prénom, e-mail, WhatsApp) | Étudiant → API | `POST /api/auth/register` |
+| 2  Vérification e-mail (code à usage unique) | API → SMTP / démo | `POST /api/auth/verify` |
+| 3  Nouvelle piste (pays cible) | Étudiant → API | `POST /api/pistes` |
+| 4  **RAG** — passages officiels pertinents (`pgvector`-compatible) | API interne | `services/rag.py` |
+| 5  Scoring déterministe (domaine 40 · niveau 25 · budget 20 · ville 12 · voie 6) | API interne | `services/orientation_engine.py` |
+| 6  Mise en forme du rapport par le LLM (jamais décideur) | API → Groq | `POST /api/orientation/rapport` |
+| 7  Conversation empathique → rapport d'orientation (gratuit) | Étudiant ↔ API | `POST /api/orientation/chat` |
+| 8  Choix voie + méthode (mobile money) | Étudiant → API | `POST /api/roadmap/voie` |
+| 9  Session de paiement hébergée | API → CinetPay | `POST /api/paiement/create` |
+| 10 Paiement mobile money (aucune donnée bancaire chez nous) | Étudiant → CinetPay | (hébergée) |
+| 11 Webhook signé → accès ouvert | CinetPay → API | `POST /api/paiement/webhook` |
+| 12 Feuille de route : arbre, échéances, prochaine action | Étudiant ↔ API | `POST /api/roadmap/generate` |
+| 13 Rappels WhatsApp J-3 des étapes critiques (asynchrone) | API → WhatsApp | tâche de fond |
+| 14 ETL open data (ONISEP, France Compétences, Mon Master, Parcoursup) | API interne, continu | `scripts/enrichir_formations_web.py` |
+
+Les étapes 4-5 se passent **à l'intérieur** de One Moov : c'est là que la
+fiabilité se joue. Les flèches asynchrones (11, 13, 14) arrivent quand
+l'événement se produit, pas pendant que l'étudiant attend.
+
+---
+
+## Ce que la fusion a apporté
+
+**Un conseiller d'orientation avec RAG** (exigence 3)
+Le prompt système reçoit désormais 3 passages officiels pertinents en plus
+du dernier message étudiant. Le conseiller reste maître du fil, mais ses
+conseils sont ancrés dans du réel — plus d'hallucinations sur une
+procédure. `app/routers/orientation.py:chat()`.
+
+**Un chatbot qui cite ses sources**
+Le chatbot prémium reçoit lui aussi les passages officiels ; il doit citer
+`[1]` `[2]` ; l'API renvoie les vraies références (`sources` dans la
+réponse). `app/routers/chatbot.py:chatbot()`.
+
+**Un RAG multi-source** (exigences 2, 5, 7)
+`app/services/rag.py` construit une base vectorielle hybride
+(BM25-approximatif + cosinus sur embeddings) qui tourne sur SQLite en dev
+et PostgreSQL en prod, sans exiger `pgvector`. Trois sources sont ingérées :
+
+* Le corpus procédural (Études en France, VLS-TS, entretien, logement,
+  arrivée, contestation) → `app/donnees/procedures.json` — **24 passages**.
+* Le catalogue de formations enrichi via l'ETL → **1 passage par formation**.
+* Les fiches RNCP synchronisées → **1 passage par fiche**.
+
+**Un enrichissement web des formations** (exigence 2)
+`scripts/enrichir_formations_web.py` ingère depuis 4 sources en cascade,
+chacune avec un snapshot local de repli quand l'open data est
+inaccessible :
+
+* ONISEP Idéo (public)
+* Mon Master (public)
+* Parcoursup (public)
+* Écoles privées reconnues (snapshot local, à enrichir au fil des partenariats)
+
+**Une vérification RNCP LLM + web** (exigence 4)
+Elle était déjà présente dans V1 (`app/services/rncp_web.py`). L'utilisateur
+saisit école + formation → un LLM connecté au web (Perplexity « sonar » par
+défaut, OpenAI-compatible) recherche la fiche officielle sur
+francecompetences.fr et renvoie : nom du titre, code RNCP, niveau, date
+d'échéance, statut. Repli automatique sur l'export officiel synchronisé
+localement si aucune clé n'est configurée.
 
 ---
 
 ## Démarrer en local
 
-### Tout d'un coup, avec Docker
-
-```bash
-cd backend
-docker compose up --build
-```
-
-L'API écoute sur `http://localhost:8000`, la documentation sur `/api/docs`.
-Les migrations et l'ingestion du RAG tournent au démarrage.
-
-### À la main
-
-**La base.** PostgreSQL 16 avec les extensions `pgvector`, `pg_trgm` et
-`unaccent`. `pgvector` est nécessaire même quand les embeddings sont
-désactivés : les colonnes vectorielles font partie du schéma.
+**Backend** (Python 3.11+)
 
 ```bash
 cd backend
 pip install -r requirements.txt
-cp .env.exemple .env          # puis renseigner DATABASE_URL
-python -m scripts.migrer      # applique les 7 migrations
-python -m scripts.ingerer_rag # charge les 30 passages
-./lancer_dev.sh               # ou : uvicorn app.main:app --reload
+cp .env.example .env               # renseigner GROQ_API_KEY, RNCP_LLM_API_KEY, etc.
+uvicorn app.main:app --reload --port 8000
 ```
 
-**L'interface.**
+Au premier démarrage :
+
+* le schéma SQL se crée (SQLite par défaut, sinon `DATABASE_URL`) ;
+* les tables RAG (`rag_documents`, `rag_passages`) s'initialisent ;
+* l'application est utilisable en **mode guidé** sans aucune clé.
+
+**Peupler la base vectorielle et le catalogue de formations**
+
+```bash
+cd backend
+python -m scripts.enrichir_formations_web        # ONISEP + Mon Master + privé
+python -m scripts.ingerer_rag                    # 24 passages procéduraux + 1 par formation
+python -m scripts.ingerer_rag --sans-embedding   # plus rapide, lexical seul
+```
+
+**Frontend** (Node 18+)
 
 ```bash
 cd frontend
 npm install
-npm run dev                   # http://localhost:5173, /api relayé vers le port 8000
+npm run dev                                       # http://localhost:5173
 ```
 
-Sans aucune clé de modèle, l'application tourne en **mode guidé** : moins
-fluide, mais complète. C'est le mode à utiliser pour une démonstration si
-les clés ne sont pas prêtes.
+Vite proxifie `/api` vers `http://localhost:8000` ; aucune configuration
+supplémentaire.
+
+**Tout d'un coup**
+
+```bash
+./start.sh
+```
+
+Lance backend + frontend, ingère les formations et le RAG au premier démarrage.
 
 ---
 
-## Les tests
+## Configuration essentielle (`.env`)
 
-```bash
-cd backend
-python -m scripts.tester          # 80 vérifications : base, agents, orchestrateur, quotas, RNCP
-python -m scripts.tester_comptes  # 29 vérifications : cycle de vie complet d'un compte
+```env
+DATABASE_URL=                        # vide → SQLite local
+GROQ_API_KEY=                        # LLM principal (Llama 3.3 70B via Groq)
+RNCP_LLM_API_KEY=                    # LLM connecté au web (Perplexity sonar par défaut)
+RNCP_LLM_BASE_URL=https://api.perplexity.ai
+RNCP_LLM_MODEL=sonar
+CINETPAY_API_KEY=                    # paiement mobile money — sinon mode sandbox
+SMTP_HOST=                           # sans SMTP → mode démo (lien dans les logs)
+JWT_SECRET=change-me-in-production
 ```
 
-`tester_comptes` suppose l'API lancée et le SMTP non configuré : il relit le
-code de vérification dans le journal du serveur. Il tape bien plus vite
-qu'un humain, donc il faut desserrer les quotas :
-
-```bash
-QUOTA_RAFALE=500 QUOTA_HORAIRE=5000 QUOTA_MODELE_HORAIRE=3000 ./lancer_dev.sh
-```
-
-Ce que les tests couvrent, au-delà du fonctionnel :
-
-- aucun montant inventé n'apparaît dans le texte d'une feuille de route ;
-- la notation d'entretien est reproductible ;
-- la bascule de l'orchestrateur a bien lieu (deux faux fournisseurs montés
-  pendant le test, le premier tombe toujours) ;
-- aucune table ni colonne ne peut stocker une conversation ;
-- la suppression d'un compte emporte vraiment toutes ses données.
+Sans aucune clé, l'application tourne en mode guidé + repli local, avec le
+message adapté à l'écran.
 
 ---
 
-## Déployer
+## Organisation du dépôt
 
-Voir [`DEPLOIEMENT.md`](DEPLOIEMENT.md). En résumé : l'API et la base sur
-Render (le `render.yaml` à la racine crée les deux), l'interface sur
-Cloudflare Pages.
+```
+backend/
+  app/
+    main.py                     init DB + init tables RAG + orchestrateur LLM
+    routers/                    auth, pistes, orientation, roadmap, rncp,
+                                paiement, chatbot, aides, metrics
+    services/
+      rag.py                    RAG hybride portable (SQLite / Postgres)
+      embeddings.py             encoder Mistral/OpenAI/local (optionnel)
+      orientation_engine.py     scoring déterministe des 10 formations
+      roadmap_engine.py         arbre d'étapes, échéances, urgences
+      rncp_web.py               vérification RNCP par LLM + accès web
+      rncp_client.py            repli sur l'export officiel local
+      llm.py                    orchestrateur Groq à cascade de modèles
+      mailer.py                 SMTP (avec repli console de démo)
+      cinetpay.py               session de paiement + webhook signé
+    data/
+      ingestion/onisep.py       ingestion open data
+      ingestion/rncp.py         synchronisation fiches France Compétences
+      seed/                     snapshots locaux (repli hors ligne)
+      procedures/france.py      procédures officielles structurées
+    donnees/procedures.json     corpus procédural d'amorçage (RAG)
+    prompts.py                  prompts du conseiller, extracteur, entretien
+    models.py                   SQLAlchemy 2.0 (User, Piste, Formation, RncpFiche…)
+    schemas.py                  Pydantic (ChatIn, FormationsIn, RncpVerifyIn…)
+  scripts/
+    ingerer_rag.py              peuple rag_passages depuis procedures + formations + RNCP
+    enrichir_formations_web.py  ONISEP + Mon Master + Parcoursup + écoles privées
+    ingerer_rncp.py             sync export France Compétences
+  _rag_v1_source/               source originale du projet 2 conservée pour référence
+                                (migrations pgvector, agents/, scripts_rag/, tests/)
+frontend/
+  src/
+    App.jsx                     tous les écrans (Auth, Dashboard, Orientation,
+                                Rapport, Parcours, Roadmap, Entretien, Contestation)
+    api.js                      client fetch + JWT localStorage
+    styles.js                   thème sombre, tokens de couleur
+    main.jsx                    montage React + CSS global
+  vite.config.js                proxy /api → localhost:8000
+docs/
+  architecture.md               parcours bout-en-bout du PDF, en texte
+start.sh                        lance backend + frontend
+```
 
-Cloudflare Pages exécute du JavaScript sur les Workers, pas du Python, et ne
-fournit pas de PostgreSQL : l'API ne peut pas y être hébergée. Pages sert
-l'interface, qui appelle l'API hébergée ailleurs.
+Le répertoire `_rag_v1_source/` contient le back du projet 2 dans son état
+d'origine (migrations pgvector, module `services/rag.py` d'origine avec la
+fonction SQL `rechercher_passages`, agents `intake` / `matching` / `chatbot` /
+`entretien`, tests). Il est conservé pour référence — la couche RAG portée
+sur SQLite/Postgres vit désormais dans `app/services/rag.py`.
 
 ---
 
@@ -130,55 +231,31 @@ l'interface, qui appelle l'API hébergée ailleurs.
 | Conservé | Jamais conservé |
 |---|---|
 | Adresse e-mail | **Les conversations avec les agents** |
-| Empreinte scrypt du mot de passe | Nom, adresse postale, documents |
+| Empreinte bcrypt du mot de passe | Nom, adresse postale, documents |
 | Projet d'études, feuille de route, progression | Coordonnées bancaires |
 
-Les conversations ne quittent jamais l'appareil, même pour un compte
-connecté : elles vivent en `sessionStorage` et partent à la fermeture. Un
-historique d'échanges en dit bien plus long sur quelqu'un qu'une liste de
-champs.
-
-Supprimer un compte est un `DELETE` avec cascade. Pas d'effacement logique,
-pas de corbeille.
+Les conversations ne quittent jamais l'appareil (localStorage). La suppression
+d'un compte est un `DELETE` avec cascade — pas d'effacement logique, pas de
+corbeille.
 
 ---
 
-## À faire avant un usage réel
+## Ce qui reste à faire avant un usage réel
 
-Ces points sont connus et assumés, pas oubliés :
-
-- **Reconfirmer les valeurs amorcées.** Les montants et délais de
-  `migrations/004_amorcage.sql` viennent de la spécification du projet. Ils
-  doivent être vérifiés un par un sur les sites officiels.
-- **Brancher un SMTP.** Sans lui, le code de vérification part dans les
-  journaux du serveur : personne ne peut créer de compte seul.
-- **Faire tourner `scripts/ingerer_rncp.py` une première fois** avec
-  `--colonnes`. Il n'a pas pu être exécuté contre le vrai fichier pendant le
-  développement, faute d'accès réseau sortant ; il refuse d'écrire tant
-  qu'il ne reconnaît pas les colonnes.
-- **Intégrer le paiement.** Il est simulé. CinetPay ou PayDunya restent à
-  brancher.
-- **Brancher WhatsApp.** Les alertes sont maquettées côté interface ;
-  l'envoi suppose un compte WhatsApp Business.
+* Vérifier un par un les montants et délais amorcés (les scripts d'ingestion
+  vont chercher les vraies valeurs, mais les snapshots de repli restent des
+  copies figées).
+* Brancher un SMTP réel (`SMTP_HOST`) — sans lui, la vérification d'e-mail
+  tombe en mode démo (lien affiché à l'écran).
+* Configurer `RNCP_LLM_API_KEY` (Perplexity) pour la vérification RNCP par le
+  web — sinon repli sur l'export local.
+* Faire tourner `python -m scripts.ingerer_rncp` avec un accès sortant pour
+  synchroniser le vrai référentiel France Compétences.
+* Brancher CinetPay (`CINETPAY_API_KEY`) — sinon le paiement reste en
+  sandbox.
+* Brancher WhatsApp Business pour les rappels J-3 des étapes critiques.
 
 ---
 
-## L'organisation du dépôt
-
-```
-backend/
-  app/
-    agents/agent1/      orientation : intake, matching, roadmap
-    agents/agent2/      chatbot et simulation d'entretien
-    routers/            orientation, chatbot, comptes, rncp, systeme
-    services/           llm (orchestrateur), rag, faits, quotas, métriques, sécurité
-    models/schemas.py   les contrats Pydantic à valeurs fermées
-  migrations/           7 fichiers SQL, appliqués dans l'ordre
-  scripts/              migrer, ingerer_rag, ingerer_rncp, veille_sources, tester
-frontend/
-  src/ecrans/           un fichier par écran
-  src/composants/       BadgeSource, FaitVerifie, FicheRNCP portent la fiabilité
-  src/lib/              client API et état
-  public/               manifeste PWA, service worker, icônes
-docs/                   la fiche technique
-```
+Voir `docs/architecture.md` pour le déroulé bout-en-bout, et le
+[PDF d'architecture](docs/) fourni à l'appui.
