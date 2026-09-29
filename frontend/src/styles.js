@@ -210,6 +210,9 @@ export const GLOBAL_CSS = `
   .accueil-marque {
     display: flex; align-items: center; gap: 10px;
     z-index: 1;
+    max-width: 480px;
+    width: 100%;
+    margin: 0 auto;
   }
   .accueil-logo {
     width: 34px; height: 34px;
@@ -227,14 +230,25 @@ export const GLOBAL_CSS = `
     letter-spacing: -0.01em;
     color: #ffffff;
   }
+  /* Contenu centré à largeur mobile-native, même sur desktop.
+     C'est la composition la plus fidèle à la maquette : les grands
+     écrans montrent la landing dans une colonne étroite plutôt qu'un
+     texte collé à gauche et des boutons flottant au milieu. */
+  .accueil-contenu {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    z-index: 1;
+  }
   .accueil-corps {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding-top: 40px;
-    max-width: 520px;
-    z-index: 1;
   }
   .accueil-eyebrow {
     font-family: 'Inter', sans-serif;
@@ -266,7 +280,6 @@ export const GLOBAL_CSS = `
     display: flex;
     flex-direction: column;
     gap: 10px;
-    z-index: 1;
     padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
   }
   .accueil-btn {
@@ -302,7 +315,6 @@ export const GLOBAL_CSS = `
   }
   @media (min-width: 720px) {
     .accueil-corps { padding-top: 80px; }
-    .accueil-actions { max-width: 420px; align-self: center; width: 100%; }
   }
 
   /* Bouton de bascule du thème (soleil / lune). */
