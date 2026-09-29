@@ -95,6 +95,19 @@ def _map_record(x: dict) -> dict | None:
 
 
 def charger_formations(db: Session, force: bool = False) -> int:
-    if not force and db.query(Formation).count() > 0:
-        return 0
+    # Sur une base déjà peuplée, on ne renvoie 0 QUE si le référentiel couvre
+    # bien les nouveaux domaines du seed (Environnement, Communication,
+    # Social, Tourisme, Agriculture). Sinon on relance l'ingestion : le
+    # _upsert n'écrase pas les formations déjà connues, il n'ajoute que
+    # celles qui manquent. Ça met à niveau une base d'un déploiement
+    # antérieur sans intervention manuelle.
+    if not force:
+        nb = db.query(Formation).count()
+        if nb > 0:
+            nouveaux_domaines = ["Environnement Écologie", "Communication Médias",
+                                 "Social Éducation", "Tourisme Hôtellerie", "Agriculture Agronomie"]
+            manque = db.query(Formation).filter(
+                Formation.domaine.in_(nouveaux_domaines)).count() == 0
+            if not manque:
+                return 0
     return ingest_open_data(db)

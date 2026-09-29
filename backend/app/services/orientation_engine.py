@@ -40,6 +40,36 @@ def top_formations(db: Session, profil: dict, k: int = 10) -> list[dict]:
     villes = [_norm(v) for v in (profil.get("villes_cibles") or [])]
     voie = _norm(profil.get("voie", ""))
 
+    # Alias fréquents que l'extracteur LLM ou l'étudiant peut renvoyer et
+    # qu'il faut rapprocher de nos libellés de base. On garde une intention :
+    # ne pas exclure un domaine légitime parce qu'il a été formulé autrement.
+    ALIAS = {
+        "ia": "informatique", "intelligence artificielle": "informatique", "tech": "informatique",
+        "developpement": "informatique", "cyber": "informatique", "data": "informatique",
+        "business": "commerce gestion", "gestion": "commerce gestion", "finance": "commerce gestion",
+        "marketing": "commerce gestion", "management": "commerce gestion",
+        "juridique": "droit sciences po", "science politique": "droit sciences po",
+        "medecine": "sante medecine", "sante": "sante medecine", "biologie": "sciences ingenierie",
+        "psychologie": "lettres humaines", "sciences humaines": "lettres humaines",
+        "langues": "lettres humaines", "lettres": "lettres humaines",
+        "cinema": "arts design", "graphisme": "arts design", "musique": "arts design",
+        "ingenieur": "sciences ingenierie", "mecanique": "sciences ingenierie",
+        "physique": "sciences ingenierie", "mathematiques": "sciences ingenierie",
+        "environnement": "environnement ecologie", "ecologie": "environnement ecologie",
+        "energie": "environnement ecologie", "developpement durable": "environnement ecologie",
+        "communication": "communication medias", "journalisme": "communication medias",
+        "medias": "communication medias", "publicite": "communication medias",
+        "social": "social education", "education": "social education", "enseignement": "social education",
+        "assistant social": "social education", "sociologie": "social education",
+        "tourisme": "tourisme hotellerie", "hotellerie": "tourisme hotellerie",
+        "restauration": "tourisme hotellerie",
+        "agronomie": "agriculture agronomie", "agriculture": "agriculture agronomie",
+    }
+    for k_al, v_al in ALIAS.items():
+        if k_al in domaine:
+            domaine = v_al
+            break
+
     rows = db.query(Formation).all()
     scored = []
     for f in rows:
