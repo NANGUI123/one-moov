@@ -76,16 +76,13 @@ services:
         sync: false
       - key: CINETPAY_MODE
         value: SANDBOX
-      # URL publique de l'API. Render expose deux propriétés :
-      #   - `host`     : hostname public (ex. one-moov-api.onrender.com)
-      #   - `hostport` : hostname:port INTERNE (ex. one-moov-api:10000)
-      # C'est `host` qu'il faut prendre pour construire les liens envoyés
-      # aux étudiants — le back préfixe `https://` automatiquement.
+      # URL publique de l'API. Rendue en dur : les propriétés `fromService`
+      # de Render (host, hostport) renvoient toutes le hostname INTERNE
+      # (utile pour la communication inter-services) et pas le domaine
+      # public `.onrender.com`. À ajuster si tu changes le nom du service
+      # ou si tu branches un domaine custom via Render Custom Domains.
       - key: PUBLIC_BASE_URL
-        fromService:
-          name: one-moov-api
-          type: web
-          property: host
+        value: https://one-moov-api.onrender.com
 
       # RNCP LLM connecté au web (Perplexity par défaut).
       - key: RNCP_LLM_API_KEY
