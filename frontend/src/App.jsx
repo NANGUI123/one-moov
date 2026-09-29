@@ -638,7 +638,89 @@ function Rapport({ piste, rapport, onNext }) {
           <div style={{ fontSize: 13, color: C.teal2, marginTop: 4 }}>Pourquoi : {f.explication}</div>
         </div>
       ))}
-      <button className="btn" onClick={onNext} style={{ width: "100%" }}>Passer au parcours de mobilité →</button>
+
+      {piste && <VerifierEcole piste={piste} />}
+
+      {onNext && <button className="btn" onClick={onNext} style={{ width: "100%" }}>Passer au parcours de mobilité →</button>}
+    </div>
+  );
+}
+
+// ── Vérification anticipée d'une école déjà en tête ─────────────────
+// Réutilise l'endpoint /api/rncp/verify (Perplexity + repli local) qui
+// est aussi utilisé dans Parcours pour la voie privée. Ici, en amont :
+// l'étudiant qui a déjà une école en vue teste sa reconnaissance avant
+// de générer sa feuille de route, ce qui évite de payer un parcours sur
+// une formation dont le titre RNCP a expiré.
+function VerifierEcole({ piste }) {
+  const [ouvert, setOuvert] = useState(false);
+  const [intitule, setIntitule] = useState("");
+  const [etab, setEtab] = useState("");
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState("");
+
+  const verifier = async () => {
+    if (!intitule.trim() && !code.trim()) {
+      setErr("Renseigne au moins l'intitulé de la formation ou le code RNCP."); return;
+    }
+    setBusy(true); setErr("");
+    try { setRes(await api.verifyRncp(piste.id, intitule, etab, code)); }
+    catch (e) { setErr(e.message); }
+    setBusy(false);
+  };
+
+  const entete = res && (
+    res.deconseille
+      ? { txt: "⚠ Titre non recommandé", col: C.danger, bg: URG.retard.bg }
+      : res.statut === "actif"
+      ? { txt: "✓ Titre reconnu — actif", col: C.teal, bg: URG.fait.bg }
+      : res.statut === "expire"
+      ? { txt: "⚠ Titre expiré", col: C.gold, bg: URG.bientot.bg }
+      : { txt: "ℹ À vérifier auprès de l'école", col: C.muted, bg: URG.avenir.bg }
+  );
+
+  return (
+    <div className="card">
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>Tu as déjà une école en tête ?</div>
+      <div className="muted" style={{ marginBottom: ouvert ? 12 : 0 }}>
+        Vérifie que la formation est bien enregistrée au RNCP (titre reconnu par l'État) avant d'aller plus loin.
+        {!ouvert && " Aucun engagement — c'est gratuit et rapide."}
+      </div>
+      {!ouvert ? (
+        <button className="btn-ghost" onClick={() => setOuvert(true)}>Vérifier une école & sa formation</button>
+      ) : (
+        <>
+          <input className="inp" placeholder="Intitulé de la formation (ex. Master Data Science)"
+            value={intitule} onChange={(e) => setIntitule(e.target.value)} />
+          <input className="inp" placeholder="École / établissement (ex. EPITA)"
+            value={etab} onChange={(e) => setEtab(e.target.value)} />
+          <input className="inp" placeholder="Code RNCP si connu (ex. RNCP38363)"
+            value={code} onChange={(e) => setCode(e.target.value)} />
+          {err && <div style={{ color: C.danger, fontSize: 13, margin: "4px 0" }}>{err}</div>}
+          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+            <button className="btn" disabled={busy} onClick={verifier}>{busy ? "Vérification…" : "Vérifier maintenant"}</button>
+            <button className="btn-ghost" onClick={() => { setOuvert(false); setRes(null); setErr(""); }}>Fermer</button>
+          </div>
+
+          {res && res.statut && entete && (
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: entete.bg, color: entete.col }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>{entete.txt}</div>
+              <div style={{ color: C.ink, fontSize: 13 }}>{res.message}</div>
+              {(res.intitule || res.code_rncp || res.niveau || res.date_echeance) && (
+                <div style={{ marginTop: 8, fontSize: 13, color: C.ink }}>
+                  {res.intitule && <div><b>Titre :</b> {res.intitule}</div>}
+                  {res.code_rncp && <div><b>Numéro :</b> {res.code_rncp}</div>}
+                  {res.niveau && <div><b>Niveau :</b> {res.niveau}</div>}
+                  {res.date_echeance && <div><b>Fin d'enregistrement :</b> {res.date_echeance}</div>}
+                </div>
+              )}
+              {res.source && <div className="muted" style={{ marginTop: 6 }}>{res.source}</div>}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
