@@ -156,18 +156,20 @@ function Accueil({ onRegister, onLogin }) {
         <div className="accueil-marque-nom">one moov</div>
       </div>
 
-      <div className="accueil-corps">
-        <div className="accueil-eyebrow">Étudier en France, accompagné.</div>
-        <h1 className="accueil-titre">Bienvenue chez One Moov</h1>
-        <p className="accueil-sous">
-          Votre parcours vers les études en France,<br />guidé étape par étape.
-        </p>
-      </div>
+      <div className="accueil-contenu">
+        <div className="accueil-corps">
+          <div className="accueil-eyebrow">Étudier en France, accompagné.</div>
+          <h1 className="accueil-titre">Bienvenue chez One Moov</h1>
+          <p className="accueil-sous">
+            Votre parcours vers les études en France,<br />guidé étape par étape.
+          </p>
+        </div>
 
-      <div className="accueil-actions">
-        <button className="accueil-btn primaire" onClick={onRegister}>Créer un compte</button>
-        <button className="accueil-btn secondaire" onClick={onLogin}>Se connecter</button>
-        <div className="accueil-legende">Inscription gratuite · Conseiller Orientation inclus</div>
+        <div className="accueil-actions">
+          <button className="accueil-btn primaire" onClick={onRegister}>Créer un compte</button>
+          <button className="accueil-btn secondaire" onClick={onLogin}>Se connecter</button>
+          <div className="accueil-legende">Inscription gratuite · Conseiller Orientation inclus</div>
+        </div>
       </div>
     </div>
   );
