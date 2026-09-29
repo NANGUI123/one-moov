@@ -798,12 +798,14 @@ function Roadmap({ piste, prenom }) {
     <div>
       <h2>Mon projet · {piste?.titre || piste?.pays}</h2>
 
-      <div className="seg" style={{ marginBottom: 14, display: "flex", width: "100%" }}>
-        <button className={onglet === "feuille" ? "on" : ""} style={{ flex: 1 }}
+      <div className="seg" style={{ marginBottom: 14, display: "flex", width: "100%", flexWrap: "wrap" }}>
+        <button className={onglet === "feuille" ? "on" : ""} style={{ flex: "1 1 130px" }}
           onClick={() => setOnglet("feuille")}>Feuille de route</button>
-        <button className={onglet === "assistant" ? "on" : ""} style={{ flex: 1 }}
+        <button className={onglet === "assistant" ? "on" : ""} style={{ flex: "1 1 130px" }}
           onClick={() => setOnglet("assistant")}>Assistant</button>
-        <button className={onglet === "rapport" ? "on" : ""} style={{ flex: 1 }}
+        <button className={onglet === "procedures" ? "on" : ""} style={{ flex: "1 1 130px" }}
+          onClick={() => setOnglet("procedures")}>Procédures</button>
+        <button className={onglet === "rapport" ? "on" : ""} style={{ flex: "1 1 130px" }}
           onClick={() => setOnglet("rapport")}>Mon rapport</button>
       </div>
 
@@ -813,6 +815,10 @@ function Roadmap({ piste, prenom }) {
 
       {onglet === "assistant" && (
         <ChatbotPage piste={piste} etapes={all} />
+      )}
+
+      {onglet === "procedures" && (
+        <ProceduresPage piste={piste} />
       )}
 
       {onglet === "feuille" && (
@@ -838,7 +844,7 @@ function Roadmap({ piste, prenom }) {
         <div style={{ fontWeight: 700, marginBottom: 6 }}>Aides IA du parcours</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           <button className="btn-ghost btn-sm" onClick={() => setAide("entretien")}>🎤 Simuler l'entretien Campus France</button>
-          <button className="btn-ghost btn-sm" onClick={() => setAide("contestation")}>📄 Contester un refus</button>
+          <button className="btn-ghost btn-sm" onClick={() => setOnglet("procedures")}>📄 Contester un refus</button>
         </div>
       </div>
 
@@ -859,7 +865,6 @@ function Roadmap({ piste, prenom }) {
       {step && <StepModal piste={piste} etape={all.find((e) => e.id === step)} onToggle={toggle}
         onClose={() => setStep(null)} onChanged={(t) => setRm(t)} />}
       {aide === "entretien" && <EntretienModal piste={piste} prenom={prenom} onClose={() => setAide(null)} />}
-      {aide === "contestation" && <ContestationModal piste={piste} onClose={() => setAide(null)} />}
       </>
       )}
     </div>
@@ -1087,6 +1092,78 @@ function EntretienModal({ piste, prenom, onClose }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── Onglet Procédures : aide au recours (contestation), en plein-page ─
+// Anciennement une modal accessible depuis « Aides IA ». Maintenant un
+// vrai onglet du projet, plus visible et plus utilisable — l'étudiant
+// peut y revenir et lire le résultat sans se fermer par accident.
+function ProceduresPage({ piste }) {
+  const [type, setType] = useState("admission");
+  const [formation, setFormation] = useState(""); const [etab, setEtab] = useState("");
+  const [motif, setMotif] = useState(""); const [args, setArgs] = useState("");
+  const [res, setRes] = useState(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  async function generer() {
+    setBusy(true); setErr("");
+    try { setRes(await api.contestation(piste.id, { type_refus: type, formation, etablissement: etab, motif, arguments: args })); }
+    catch (e) { setErr(e.message); }
+    setBusy(false);
+  }
+  const copier = async () => {
+    try { await navigator.clipboard.writeText(res.lettre); setCopied(true); setTimeout(() => setCopied(false), 1500); }
+    catch { /* clipboard bloqué : on laisse l'utilisateur copier manuellement. */ }
+  };
+
+  return (
+    <div>
+      <div className="card card-soft" style={{ marginBottom: 12 }}>
+        <div style={{ fontWeight: 700, marginBottom: 4 }}>Procédures & recours</div>
+        <div className="muted">
+          Un refus n'est pas la fin du parcours. Décris ta situation, Moov génère les voies de recours réalistes,
+          des conseils concrets et un brouillon de courrier prêt à personnaliser.
+        </div>
+      </div>
+
+      {!res ? (
+        <div className="card">
+          <div className="muted" style={{ marginBottom: 4 }}>Type de refus</div>
+          <div className="seg" style={{ marginBottom: 10 }}>
+            <button className={type === "admission" ? "on" : ""} onClick={() => setType("admission")}>Admission</button>
+            <button className={type === "visa" ? "on" : ""} onClick={() => setType("visa")}>Visa</button>
+          </div>
+          <input className="inp" placeholder="Formation concernée" value={formation} onChange={(e) => setFormation(e.target.value)} />
+          <input className="inp" placeholder="Établissement / consulat" value={etab} onChange={(e) => setEtab(e.target.value)} />
+          <input className="inp" placeholder="Motif du refus (si connu)" value={motif} onChange={(e) => setMotif(e.target.value)} />
+          <textarea className="ta" placeholder="Les éléments que vous voulez faire valoir (nouveaux résultats, motivation, corrections…)"
+            value={args} onChange={(e) => setArgs(e.target.value)} />
+          {err && <div style={{ color: C.danger, fontSize: 13, margin: "6px 0" }}>{err}</div>}
+          <button className="btn" disabled={busy} onClick={generer} style={{ width: "100%", marginTop: 6 }}>
+            {busy ? "Génération…" : "Générer mon aide au recours"}
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="card">
+            <div style={{ fontWeight: 700, color: C.teal, marginBottom: 4 }}>Voies possibles</div>
+            {res.voies.map((v, i) => <div key={i} style={{ fontSize: 14, margin: "3px 0" }}>• {v}</div>)}
+            <div style={{ fontWeight: 700, color: C.gold, margin: "10px 0 4px" }}>Conseils</div>
+            {res.conseils.map((v, i) => <div key={i} style={{ fontSize: 14, margin: "3px 0" }}>→ {v}</div>)}
+          </div>
+          <div className="card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <div style={{ fontWeight: 700 }}>Brouillon de courrier</div>
+              <button className="btn-ghost btn-sm" onClick={copier}>{copied ? "Copié ✓" : "Copier"}</button>
+            </div>
+            <textarea className="ta" style={{ minHeight: 260 }} value={res.lettre} onChange={(e) => setRes({ ...res, lettre: e.target.value })} />
+            {res.avertissement && <div className="muted" style={{ marginTop: 6 }}>⚠︎ {res.avertissement}</div>}
+          </div>
+          <button className="btn-ghost" onClick={() => setRes(null)}>← Modifier ma situation</button>
+        </>
+      )}
     </div>
   );
 }
