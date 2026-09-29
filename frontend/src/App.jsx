@@ -74,7 +74,10 @@ const fcfa = (n) => `${(n || 0).toLocaleString("fr-FR").replace(/ /g, " ")} FCF
 const PRIX_FCFA = 52477;
 
 export default function App() {
-  const [view, setView] = useState("auth");
+  // welcome = écran d'accueil marketing ; auth = inscription/connexion ;
+  // le reste = écrans applicatifs après connexion.
+  const [view, setView] = useState("welcome");
+  const [authMode, setAuthMode] = useState("register"); // "register" | "login"
   const [prenom, setPrenom] = useState("");
   const [piste, setPiste] = useState(null);
   const [rapport, setRapport] = useState(null);
@@ -84,7 +87,7 @@ export default function App() {
     if (getToken()) api.me().then((u) => { setPrenom(u.prenom || ""); setView("dashboard"); }).catch(() => setToken(null));
   }, []);
 
-  const logout = () => { setToken(null); setPiste(null); setRapport(null); setView("auth"); };
+  const logout = () => { setToken(null); setPiste(null); setRapport(null); setView("welcome"); };
   const goDash = () => { setPiste(null); setRapport(null); setView("dashboard"); };
 
   const openPiste = async (id) => {
@@ -94,12 +97,22 @@ export default function App() {
       p.paid ? "roadmap" : p.voie ? "parcours" : (p.formations || []).length ? "formations" : "orientation"));
   };
 
+  // Écran d'accueil : plein écran, dégradé fixe, pas de header en dur.
+  if (view === "welcome") {
+    return <Accueil
+      onRegister={() => { setAuthMode("register"); setView("auth"); }}
+      onLogin={() => { setAuthMode("login"); setView("auth"); }}
+    />;
+  }
+
   return (
     <div className="wrap">
       <Header prenom={prenom} theme={theme} onToggleTheme={toggleTheme}
         onHome={view !== "auth" && view !== "dashboard" ? goDash : null}
+        onBack={view === "auth" ? () => setView("welcome") : null}
         onLogout={view !== "auth" ? logout : null} />
-      {view === "auth" && <Auth onAuth={(p) => { setPrenom(p); setView("dashboard"); }} />}
+      {view === "auth" && <Auth initialMode={authMode}
+        onAuth={(p) => { setPrenom(p); setView("dashboard"); }} />}
       {view === "dashboard" && <Dashboard prenom={prenom}
         onNew={async () => { setPiste(await api.createPiste("Cameroun")); setRapport(null); setView("orientation"); }}
         onOpen={openPiste} />}
@@ -112,13 +125,14 @@ export default function App() {
   );
 }
 
-function Header({ prenom, onHome, onLogout, theme, onToggleTheme }) {
+function Header({ prenom, onHome, onLogout, onBack, theme, onToggleTheme }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
         <div style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 20, color: C.teal, cursor: onHome ? "pointer" : "default" }}
           onClick={onHome || undefined}>One Moov</div>
         {onHome && <span className="link" onClick={onHome} style={{ fontSize: 13 }}>← Tableau de bord</span>}
+        {onBack && <span className="link" onClick={onBack} style={{ fontSize: 13 }}>← Retour</span>}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         {onToggleTheme && <ThemeToggle theme={theme} onToggle={onToggleTheme} />}
@@ -128,9 +142,40 @@ function Header({ prenom, onHome, onLogout, theme, onToggleTheme }) {
   );
 }
 
+// ── Écran d'accueil (avant l'inscription/connexion) ────────────────
+function Accueil({ onRegister, onLogin }) {
+  return (
+    <div className="accueil">
+      <div className="accueil-marque">
+        <div className="accueil-logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="16" cy="16" r="10" />
+            <path d="M11 16h10M16 11v10" />
+          </svg>
+        </div>
+        <div className="accueil-marque-nom">one moov</div>
+      </div>
+
+      <div className="accueil-corps">
+        <div className="accueil-eyebrow">Étudier en France, accompagné.</div>
+        <h1 className="accueil-titre">Bienvenue chez One Moov</h1>
+        <p className="accueil-sous">
+          Votre parcours vers les études en France,<br />guidé étape par étape.
+        </p>
+      </div>
+
+      <div className="accueil-actions">
+        <button className="accueil-btn primaire" onClick={onRegister}>Créer un compte</button>
+        <button className="accueil-btn secondaire" onClick={onLogin}>Se connecter</button>
+        <div className="accueil-legende">Inscription gratuite · Conseiller Orientation inclus</div>
+      </div>
+    </div>
+  );
+}
+
 // ── Authentification (inscription + vérification e-mail + reset) ───
-function Auth({ onAuth }) {
-  const [mode, setMode] = useState("register");   // register | login | forgot
+function Auth({ onAuth, initialMode = "register" }) {
+  const [mode, setMode] = useState(initialMode);   // register | login | forgot
   const [email, setEmail] = useState(""); const [pw, setPw] = useState(""); const [pn, setPn] = useState("");
   const [pays, setPays] = useState("");           // Cameroun | Congo-Brazzaville | ""
   const [voirPw, setVoirPw] = useState(false);    // toggle œil sur le mot de passe

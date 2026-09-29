@@ -182,6 +182,129 @@ export const GLOBAL_CSS = `
   .tree-node:hover { border-color: var(--teal); box-shadow: var(--shadow-card); }
   .tree-node .lbl { font-weight: 600; font-size: 14px; }
 
+  /* ── Écran d'accueil : dégradé fixe, hors des tokens du thème ───── */
+  .accueil {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 24px 32px;
+    color: #ffffff;
+    background: linear-gradient(180deg,
+      #0e6b5c 0%,
+      #1a6a70 42%,
+      #2c5a9e 78%,
+      #3f5cb8 100%);
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
+  }
+  .accueil::before {
+    content: "";
+    position: absolute;
+    inset: -20% -20% auto -20%;
+    height: 55%;
+    background: radial-gradient(60% 80% at 50% 0%, rgba(255,255,255,.12), rgba(255,255,255,0) 70%);
+    pointer-events: none;
+  }
+  .accueil-marque {
+    display: flex; align-items: center; gap: 10px;
+    z-index: 1;
+  }
+  .accueil-logo {
+    width: 34px; height: 34px;
+    background: rgba(255,255,255,.18);
+    border: 1px solid rgba(255,255,255,.28);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #ffffff;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .accueil-marque-nom {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700; font-size: 20px;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+  }
+  .accueil-corps {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 40px;
+    max-width: 520px;
+    z-index: 1;
+  }
+  .accueil-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,.72);
+    margin-bottom: 14px;
+  }
+  .accueil-titre {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: clamp(28px, 6vw, 40px);
+    line-height: 1.08;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    margin: 0 0 12px;
+  }
+  .accueil-sous {
+    font-size: 16px;
+    line-height: 1.5;
+    color: rgba(255,255,255,.86);
+    margin: 0;
+    max-width: 30ch;
+  }
+  .accueil-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1;
+    padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
+  }
+  .accueil-btn {
+    border: 0;
+    border-radius: 14px;
+    padding: 16px 22px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .12s ease, filter .15s ease, background-color .15s ease;
+  }
+  .accueil-btn:active { transform: scale(.985); }
+  .accueil-btn.primaire {
+    background: #ffffff;
+    color: #0e6b5c;
+    box-shadow: 0 8px 24px rgba(10, 40, 30, .18);
+  }
+  .accueil-btn.primaire:hover { filter: brightness(1.02); }
+  .accueil-btn.secondaire {
+    background: rgba(255,255,255,.16);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,.22);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .accueil-btn.secondaire:hover { background: rgba(255,255,255,.22); }
+  .accueil-legende {
+    text-align: center;
+    font-size: 12.5px;
+    color: rgba(255,255,255,.72);
+    margin-top: 8px;
+  }
+  @media (min-width: 720px) {
+    .accueil-corps { padding-top: 80px; }
+    .accueil-actions { max-width: 420px; align-self: center; width: 100%; }
+  }
+
   /* Bouton de bascule du thème (soleil / lune). */
   .theme-toggle {
     background: transparent; border: 1px solid var(--line);
