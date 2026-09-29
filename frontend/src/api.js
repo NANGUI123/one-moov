@@ -30,6 +30,7 @@ export const api = {
   resendVerif: (email) => req("POST", "/auth/resend", { email }),
   forgot: (email) => req("POST", "/auth/forgot", { email }),
   me: () => req("GET", "/auth/me"),
+  supprimerCompte: (mot_de_passe) => req("DELETE", "/auth/me", { mot_de_passe }),
   paysDisponibles: () => req("GET", "/auth/pays"),
 
   // Pistes / tableau de bord (feature 14)

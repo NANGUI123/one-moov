@@ -89,8 +89,8 @@ const fcfa = (n) => `${(n || 0).toLocaleString("fr-FR").replace(/ /g, " ")} FCF
 const PRIX_FCFA = 52477;
 
 export default function App() {
-  // welcome = écran d'accueil marketing ; auth = inscription/connexion ;
-  // le reste = écrans applicatifs après connexion.
+  // welcome = accueil marketing ; auth = inscription/connexion ; profil =
+  // écran gestion compte ; le reste = écrans applicatifs après connexion.
   const [view, setView] = useState("welcome");
   const [authMode, setAuthMode] = useState("register"); // "register" | "login"
   const [prenom, setPrenom] = useState("");
@@ -104,6 +104,7 @@ export default function App() {
 
   const logout = () => { setToken(null); setPiste(null); setRapport(null); setView("welcome"); };
   const goDash = () => { setPiste(null); setRapport(null); setView("dashboard"); };
+  const goProfil = () => setView("profil");
 
   const openPiste = async (id) => {
     const p = await api.getPiste(id);
@@ -123,11 +124,13 @@ export default function App() {
   return (
     <div className="wrap">
       <Header prenom={prenom} theme={theme} onToggleTheme={toggleTheme}
-        onHome={view !== "auth" && view !== "dashboard" ? goDash : null}
-        onBack={view === "auth" ? () => setView("welcome") : null}
+        onHome={view !== "auth" && view !== "dashboard" && view !== "profil" ? goDash : null}
+        onBack={view === "auth" ? () => setView("welcome") : (view === "profil" ? goDash : null)}
+        onProfil={view !== "auth" && view !== "profil" ? goProfil : null}
         onLogout={view !== "auth" ? logout : null} />
       {view === "auth" && <Auth initialMode={authMode}
         onAuth={(p) => { setPrenom(p); setView("dashboard"); }} />}
+      {view === "profil" && <Profil onDeconnexion={logout} onSuppression={logout} />}
       {view === "dashboard" && <Dashboard prenom={prenom}
         onNew={async () => { setPiste(await api.createPiste("Cameroun")); setRapport(null); setView("orientation"); }}
         onOpen={openPiste} />}
@@ -140,7 +143,7 @@ export default function App() {
   );
 }
 
-function Header({ prenom, onHome, onLogout, onBack, theme, onToggleTheme }) {
+function Header({ prenom, onHome, onLogout, onBack, onProfil, theme, onToggleTheme }) {
   const { t } = useLang();
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 12 }}>
@@ -153,6 +156,15 @@ function Header({ prenom, onHome, onLogout, onBack, theme, onToggleTheme }) {
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <LangToggle />
         {onToggleTheme && <ThemeToggle theme={theme} onToggle={onToggleTheme} />}
+        {onProfil && (
+          <button className="theme-toggle" onClick={onProfil} aria-label="Mon profil" title="Mon profil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </button>
+        )}
         {onLogout && <button className="btn-ghost btn-sm" onClick={onLogout}>{t("header.deconnexion")}</button>}
       </div>
     </div>
@@ -770,6 +782,8 @@ function Roadmap({ piste, prenom }) {
   const [mode, setMode] = useState("arbre");   // arbre | liste (feature 5)
   const [step, setStep] = useState(null);
   const [aide, setAide] = useState(null);      // "entretien" | "contestation"
+  // Onglets de la vue projet payé : feuille de route (défaut) | assistant | rapport.
+  const [onglet, setOnglet] = useState("feuille");
 
   useEffect(() => { if (!rm) api.genRoadmap(piste.id).then(setRm).catch(() => {}); }, []);
   if (!rm) return <p className="muted">Chargement…</p>;
@@ -782,8 +796,27 @@ function Roadmap({ piste, prenom }) {
 
   return (
     <div>
-      <h2>Ma feuille de route</h2>
+      <h2>Mon projet · {piste?.titre || piste?.pays}</h2>
 
+      <div className="seg" style={{ marginBottom: 14, display: "flex", width: "100%" }}>
+        <button className={onglet === "feuille" ? "on" : ""} style={{ flex: 1 }}
+          onClick={() => setOnglet("feuille")}>Feuille de route</button>
+        <button className={onglet === "assistant" ? "on" : ""} style={{ flex: 1 }}
+          onClick={() => setOnglet("assistant")}>Assistant</button>
+        <button className={onglet === "rapport" ? "on" : ""} style={{ flex: 1 }}
+          onClick={() => setOnglet("rapport")}>Mon rapport</button>
+      </div>
+
+      {onglet === "rapport" && (
+        <Rapport piste={piste} rapport={null} onNext={null} />
+      )}
+
+      {onglet === "assistant" && (
+        <ChatbotPage piste={piste} etapes={all} />
+      )}
+
+      {onglet === "feuille" && (
+      <>
       <div className="card">
         <div style={{ display: "flex", gap: 6 }}>
           <div className="stat"><b>{rm.progression_pct}%</b><span className="muted">avancement</span></div>
@@ -827,6 +860,69 @@ function Roadmap({ piste, prenom }) {
         onClose={() => setStep(null)} onChanged={(t) => setRm(t)} />}
       {aide === "entretien" && <EntretienModal piste={piste} prenom={prenom} onClose={() => setAide(null)} />}
       {aide === "contestation" && <ContestationModal piste={piste} onClose={() => setAide(null)} />}
+      </>
+      )}
+    </div>
+  );
+}
+
+// ── Onglet Assistant : chatbot en plein page (pas en modal) ─────────
+function ChatbotPage({ piste, etapes }) {
+  const [etapeId, setEtapeId] = useState("");
+  const [msgs, setMsgs] = useState([{
+    role: "assistant",
+    content: "Salut ! Choisis une étape ou écris ta question — je m'appuie sur les procédures officielles et je cite mes sources.",
+  }]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sources, setSources] = useState([]);
+  const endRef = useRef(null);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
+
+  async function send(txt) {
+    if (!txt.trim() || busy) return;
+    const next = [...msgs, { role: "user", content: txt }];
+    setMsgs(next); setInput(""); setBusy(true);
+    try {
+      const r = await api.chatbot(piste.id, etapeId || "", next);
+      setMsgs([...next, { role: "assistant", content: r.content }]);
+      setSources(r.sources || []);
+    } catch (e) {
+      setMsgs([...next, { role: "assistant", content: "Erreur : " + e.message }]);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div>
+      <div className="card card-soft" style={{ marginBottom: 10 }}>
+        <div className="muted" style={{ marginBottom: 6 }}>Contexte (facultatif) — sur quelle étape ?</div>
+        <select className="inp" value={etapeId} onChange={(e) => setEtapeId(e.target.value)}>
+          <option value="">Toutes les étapes</option>
+          {(etapes || []).map((e) => <option key={e.id} value={e.id}>{e.label}</option>)}
+        </select>
+      </div>
+      <div className="card" style={{ minHeight: 260 }}>
+        {msgs.map((m, i) => <Bubble key={i} role={m.role} text={m.content} />)}
+        {busy && <div className="muted">…</div>}
+        <div ref={endRef} />
+      </div>
+      {sources.length > 0 && (
+        <div className="card card-soft" style={{ marginTop: 0 }}>
+          <div className="muted" style={{ marginBottom: 6 }}>Sources citées</div>
+          {sources.map((s, i) => (
+            <div key={i} style={{ fontSize: 13, margin: "4px 0" }}>
+              <b>{s.titre}</b> — {s.organisme}
+              {s.url && <> · <a className="link" href={s.url} target="_blank" rel="noreferrer">voir</a></>}
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <input className="inp" placeholder="Pose ta question…" value={input}
+          onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send(input)} />
+        <button className="btn" disabled={busy} onClick={() => send(input)}>Envoyer</button>
+      </div>
     </div>
   );
 }
@@ -1048,6 +1144,129 @@ function ContestationModal({ piste, onClose }) {
             <textarea className="ta" style={{ minHeight: 220 }} value={res.lettre} onChange={(e) => setRes({ ...res, lettre: e.target.value })} />
             {res.avertissement && <div className="muted" style={{ marginTop: 6 }}>⚠︎ {res.avertissement}</div>}
             <button className="btn-ghost" onClick={() => setRes(null)} style={{ marginTop: 10 }}>← Modifier ma situation</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Écran Profil ────────────────────────────────────────────────────
+// Prix du parcours, transparence sur ce qui est conservé ou non, et
+// deux boutons irréversibles côté données : déconnexion (efface la
+// session locale) et suppression du compte (efface tout sur le serveur).
+function Profil({ onDeconnexion, onSuppression }) {
+  const [me, setMe] = useState(null);
+  const [err, setErr] = useState("");
+  const [confirmer, setConfirmer] = useState(false);
+  const [pw, setPw] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => { api.me().then(setMe).catch(() => {}); }, []);
+
+  const supprimer = async () => {
+    setErr(""); setBusy(true);
+    try {
+      await api.supprimerCompte(pw);
+      setToken(null);
+      onSuppression?.();
+    } catch (e) { setErr(e.message); setBusy(false); }
+  };
+
+  const fmtFcfa = (n) => `${(n || 0).toLocaleString("fr-FR")} FCFA`;
+
+  return (
+    <div>
+      <h2 style={{ marginTop: 0 }}>Mon profil</h2>
+
+      <div className="card">
+        <div style={{ fontWeight: 700, marginBottom: 6 }}>Mon compte</div>
+        <div className="muted" style={{ fontSize: 13 }}>Prénom</div>
+        <div style={{ marginBottom: 8 }}>{me?.prenom || "—"}</div>
+        <div className="muted" style={{ fontSize: 13 }}>E-mail</div>
+        <div style={{ marginBottom: 8 }}>{me?.email || "—"}
+          {me?.email_verifie ? <span className="chip" style={{ marginLeft: 8 }}>vérifié ✓</span>
+            : <span className="chip" style={{ marginLeft: 8, color: C.gold }}>non vérifié</span>}
+        </div>
+        <div className="muted" style={{ fontSize: 13 }}>Pays de résidence</div>
+        <div style={{ marginBottom: 8 }}>{me?.pays_residence || "—"}</div>
+        <div className="muted" style={{ fontSize: 13 }}>Compte créé</div>
+        <div>{me?.cree_le ? new Date(me.cree_le).toLocaleDateString("fr-FR") : "—"}</div>
+      </div>
+
+      <div className="card">
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>Tarifs</div>
+        <div className="muted" style={{ marginBottom: 8 }}>
+          L'orientation (rapport + 10 pistes vérifiées + conseiller) est <b>gratuite</b>. Le parcours de mobilité (feuille de route, chatbot, entretien blanc, aide à la contestation) est payant, une seule fois par projet.
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--line)" }}>
+          <div>Orientation & rapport</div>
+          <div style={{ fontWeight: 700, color: C.teal }}>Gratuit</div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--line)" }}>
+          <div>Parcours de mobilité complet</div>
+          <div style={{ fontWeight: 700 }}>{fmtFcfa(PRIX_FCFA)} <span className="muted" style={{ fontWeight: 400 }}>· ~80 €</span></div>
+        </div>
+        <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>
+          Paiement par mobile money (MTN, Orange, Airtel, Wave selon ton pays). Aucune donnée bancaire ne transite par One Moov.
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>Tes données</div>
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontWeight: 600, color: C.teal, marginBottom: 4 }}>Ce qui est conservé</div>
+          <ul style={{ paddingLeft: 20, margin: 0, fontSize: 14 }}>
+            <li>Ton prénom, ton e-mail, ton pays de résidence</li>
+            <li>Une empreinte bcrypt de ton mot de passe (jamais le mot de passe en clair)</li>
+            <li>Tes projets d'études et tes feuilles de route (pour les retrouver d'un appareil à l'autre)</li>
+            <li>Les paiements confirmés (référence, montant, date — jamais tes coordonnées bancaires)</li>
+          </ul>
+        </div>
+        <div>
+          <div style={{ fontWeight: 600, color: C.gold, marginBottom: 4 }}>Ce qui n'est jamais conservé</div>
+          <ul style={{ paddingLeft: 20, margin: 0, fontSize: 14 }}>
+            <li>Tes conversations avec le conseiller Moov et avec l'assistant</li>
+            <li>Tes réponses libres à l'entretien Campus France blanc</li>
+            <li>Tes coordonnées bancaires (elles restent chez l'opérateur mobile money)</li>
+            <li>Aucune donnée envoyée à des tiers en dehors des fournisseurs techniques nécessaires (LLM, paiement, e-mail)</li>
+          </ul>
+        </div>
+      </div>
+
+      {me && (
+        <div className="card card-soft" style={{ fontSize: 13 }}>
+          <div className="muted">Ton usage à ce jour</div>
+          <div>{me.nb_pistes ?? 0} projet(s) · {me.nb_paiements ?? 0} paiement(s) · {me.nb_appels_ia ?? 0} appel(s) à l'IA</div>
+        </div>
+      )}
+
+      <div className="card">
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>Session</div>
+        <p className="muted" style={{ marginTop: 0 }}>Ferme cette session sur cet appareil. Tes projets et ton compte restent intacts, tu pourras te reconnecter n'importe quand.</p>
+        <button className="btn-ghost" onClick={onDeconnexion}>Se déconnecter</button>
+      </div>
+
+      <div className="card" style={{ borderColor: "var(--danger)" }}>
+        <div style={{ fontWeight: 700, marginBottom: 8, color: C.danger }}>Zone irréversible</div>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Supprimer ton compte efface définitivement <b>tout</b> : tes projets, tes feuilles de route, tes paiements
+          enregistrés, ton historique. Aucune corbeille, aucune récupération possible. La confirmation par mot de passe
+          protège contre un accès frauduleux à ta session.
+        </p>
+        {!confirmer ? (
+          <button className="btn-danger" onClick={() => setConfirmer(true)}>Supprimer mon compte</button>
+        ) : (
+          <>
+            <input className="inp" type="password" placeholder="Confirme ton mot de passe"
+              value={pw} onChange={(e) => setPw(e.target.value)} />
+            {err && <div style={{ color: C.danger, fontSize: 13, margin: "6px 0" }}>{err}</div>}
+            <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+              <button className="btn-danger" disabled={busy || !pw} onClick={supprimer}>
+                {busy ? "Suppression…" : "Oui, supprimer définitivement"}
+              </button>
+              <button className="btn-ghost" onClick={() => { setConfirmer(false); setPw(""); setErr(""); }}>Annuler</button>
+            </div>
           </>
         )}
       </div>
