@@ -431,38 +431,46 @@ function IconeOeilBarre() {
 
 // ── Tableau de bord (feature 14) ───────────────────────────────────
 function Dashboard({ prenom, onNew, onOpen }) {
+  const { t } = useLang();
   const [pistes, setPistes] = useState(null);
   useEffect(() => { api.listPistes().then((d) => setPistes(d.pistes)).catch(() => setPistes([])); }, []);
 
+  const ETAPE_TR = {
+    orientation: t("etape.orientation"),
+    formations: t("etape.formations"),
+    parcours: t("etape.parcours"),
+    roadmap: t("etape.roadmap"),
+  };
+
   return (
     <div>
-      <h1 style={{ marginTop: 0 }}>Bonjour {prenom || ""} 👋</h1>
-      <p style={{ marginTop: 0 }}>Nous vous accompagnons avec efficacité dans votre projet d'études en France :
-        une <b>orientation gratuite</b> (10 pistes faites pour vous), puis un <b>parcours de mobilité</b> pas à pas,
-        de l'admission au voyage.</p>
-      <button className="btn" onClick={onNew} style={{ width: "100%", marginBottom: 16 }}>+ Nouvelle orientation</button>
+      <h1 style={{ marginTop: 0 }}>{t("dash.bonjour")} {prenom || ""} 👋</h1>
+      <p style={{ marginTop: 0 }}>
+        {t("dash.intro")} <b>{t("dash.gratuit")}</b> {t("dash.pistes")} <b>{t("dash.parcours")}</b> {t("dash.fin")}
+      </p>
+      <button className="btn" onClick={onNew} style={{ width: "100%", marginBottom: 16 }}>{t("dash.nouveau")}</button>
 
-      {pistes === null && <p className="muted">Chargement…</p>}
+      {pistes === null && <p className="muted">{t("dash.chargement")}</p>}
       {pistes && pistes.length === 0 && (
-        <div className="card card-soft"><p className="muted" style={{ margin: 0 }}>Vous n'avez pas encore de projet. Lancez votre première orientation, c'est gratuit.</p></div>
+        <div className="card card-soft"><p className="muted" style={{ margin: 0 }}>{t("dash.vide")}</p></div>
       )}
-      {pistes && pistes.length > 0 && <div className="muted" style={{ marginBottom: 6 }}>Mes projets</div>}
+      {pistes && pistes.length > 0 && <div className="muted" style={{ marginBottom: 6 }}>{t("dash.mesprojets")}</div>}
       {pistes && pistes.map((p) => (
         <div className="card" key={p.id} style={{ cursor: "pointer" }} onClick={() => onOpen(p.id)}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
             <div style={{ fontWeight: 700 }}>{p.titre} <span className="muted" style={{ fontWeight: 400 }}>· {p.pays}</span></div>
-            <span className="chip" style={{ margin: 0 }}>{ETAPE_LABEL[p.etape]}</span>
+            <span className="chip" style={{ margin: 0 }}>{ETAPE_TR[p.etape] || p.etape}</span>
           </div>
           {p.paid && (
             <>
               <div className="progress"><i style={{ width: `${p.progression_pct}%` }} /></div>
               <div className="muted" style={{ display: "flex", justifyContent: "space-between" }}>
                 <span>{p.progression_pct}% · prochaine : {p.prochaine_action || "—"}{p.prochaine_echeance ? ` (${p.prochaine_echeance})` : ""}</span>
-                {p.nb_en_retard > 0 && <span style={{ color: C.danger }}>{p.nb_en_retard} en retard</span>}
+                {p.nb_en_retard > 0 && <span style={{ color: C.danger }}>{p.nb_en_retard} {t("roadmap.retard")}</span>}
               </div>
             </>
           )}
-          {!p.paid && <div className="muted">{p.nb_formations ? `${p.nb_formations} pistes proposées` : "Orientation à démarrer"}{p.voie ? ` · voie ${p.voie}` : ""}</div>}
+          {!p.paid && <div className="muted">{p.nb_formations ? `${p.nb_formations} ${t("dash.pistes_proposees")}` : t("dash.astarter")}{p.voie ? ` · ${t("dash.voie")} ${p.voie}` : ""}</div>}
         </div>
       ))}
     </div>
@@ -590,31 +598,100 @@ function Bubble({ role, text }) {
 
 // ── Rapport d'orientation structuré (features 1 + 2) ───────────────
 function Rapport({ piste, rapport, onNext }) {
+  const { t } = useLang();
   const list = rapport?.formations || piste?.formations || [];
   const syn = rapport?.synthese || (piste?.profil || {}).synthese || null;
+  const profil = rapport?.profil || piste?.profil || {};
   const transp = rapport?.transparence || TRANSPARENCE;
   const [showT, setShowT] = useState(false);
 
+  // Budget : on lit indifféremment budget_annuel ou budget_mensuel*12 dans
+  // le profil pour absorber les deux formes extraites par le conseiller.
+  const budgetDeclare = (() => {
+    const a = parseInt(profil.budget_annuel || 0, 10);
+    if (a) return a;
+    const m = parseInt(profil.budget_mensuel || 0, 10);
+    return m ? m * 12 : 0;
+  })();
+
+  // Statistiques budget des 10 pistes retournées.
+  const couts = list.map((f) => parseInt(f.cout_annuel || 0, 10)).filter((n) => n > 0);
+  const budgetStats = couts.length ? {
+    min: Math.min(...couts),
+    max: Math.max(...couts),
+    moy: Math.round(couts.reduce((a, b) => a + b, 0) / couts.length),
+    total3ans: Math.round(couts.reduce((a, b) => a + b, 0) / couts.length) * 3,
+  } : null;
+  const fmtEur = (n) => `${(n || 0).toLocaleString("fr-FR")} €`;
+
+  const villes = Array.isArray(profil.villes_cibles) ? profil.villes_cibles : (profil.villes_cibles ? [profil.villes_cibles] : []);
+
   return (
     <div>
-      <h2>Votre rapport d'orientation</h2>
+      <h2>{t("rapport.titre")}</h2>
+
+      {/* Récapitulatif du profil compris — permet à l'étudiant de vérifier
+          ce qui a été retenu de son entretien avant d'engager la suite. */}
+      {(profil.domaine || profil.niveau_vise || profil.niveau || budgetDeclare || villes.length || profil.projet_pro) && (
+        <div className="card">
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>{t("rapport.profil.titre")}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+            {profil.domaine && (
+              <div><div className="muted" style={{ fontSize: 12 }}>{t("rapport.profil.domaine")}</div><div style={{ fontWeight: 600 }}>{profil.domaine}</div></div>
+            )}
+            {(profil.niveau_vise || profil.niveau) && (
+              <div><div className="muted" style={{ fontSize: 12 }}>{t("rapport.profil.niveau")}</div><div style={{ fontWeight: 600 }}>{profil.niveau_vise || profil.niveau}</div></div>
+            )}
+            {budgetDeclare > 0 && (
+              <div><div className="muted" style={{ fontSize: 12 }}>{t("rapport.profil.budget")}</div><div style={{ fontWeight: 600 }}>{fmtEur(budgetDeclare)}</div></div>
+            )}
+            {villes.length > 0 && (
+              <div><div className="muted" style={{ fontSize: 12 }}>{t("rapport.profil.villes")}</div><div style={{ fontWeight: 600 }}>{villes.join(", ")}</div></div>
+            )}
+            {profil.projet_pro && (
+              <div style={{ gridColumn: "1 / -1" }}><div className="muted" style={{ fontSize: 12 }}>{t("rapport.profil.projet")}</div><div style={{ fontWeight: 500 }}>{profil.projet_pro}</div></div>
+            )}
+          </div>
+        </div>
+      )}
 
       {syn && (
         <div className="card">
           {syn.synthese && <p style={{ marginTop: 0, fontSize: 15 }}>{syn.synthese}</p>}
           {syn.forces?.length > 0 && (
             <div style={{ marginTop: 8 }}>
-              <div style={{ fontWeight: 700, color: C.teal2, marginBottom: 4 }}>Vos atouts</div>
+              <div style={{ fontWeight: 700, color: C.teal2, marginBottom: 4 }}>{t("rapport.atouts")}</div>
               {syn.forces.map((f, i) => <div key={i} style={{ fontSize: 14, margin: "2px 0" }}>✓ {f}</div>)}
             </div>
           )}
           {syn.points_attention?.length > 0 && (
             <div style={{ marginTop: 10 }}>
-              <div style={{ fontWeight: 700, color: C.gold, marginBottom: 4 }}>À travailler</div>
+              <div style={{ fontWeight: 700, color: C.gold, marginBottom: 4 }}>{t("rapport.attention")}</div>
               {syn.points_attention.map((f, i) => <div key={i} style={{ fontSize: 14, margin: "2px 0" }}>• {f}</div>)}
             </div>
           )}
           {syn.prochaine_etape && <div className="muted" style={{ marginTop: 10 }}>→ {syn.prochaine_etape}</div>}
+        </div>
+      )}
+
+      {/* Estimation budget : donne à l'étudiant une vue d'ensemble avant
+          d'ouvrir les 10 fiches. Un avertissement quand son budget est
+          en dessous du coût moyen — plus honnête que de le découvrir
+          formation par formation. */}
+      {budgetStats && (
+        <div className="card">
+          <div style={{ fontWeight: 700, marginBottom: 8 }}>{t("rapport.budget.titre")}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 8 }}>
+            <div><div className="muted" style={{ fontSize: 12 }}>{t("rapport.budget.cout_min")}</div><div style={{ fontWeight: 700 }}>{fmtEur(budgetStats.min)}</div></div>
+            <div><div className="muted" style={{ fontSize: 12 }}>{t("rapport.budget.cout_moyen")}</div><div style={{ fontWeight: 700 }}>{fmtEur(budgetStats.moy)}</div></div>
+            <div><div className="muted" style={{ fontSize: 12 }}>{t("rapport.budget.cout_max")}</div><div style={{ fontWeight: 700 }}>{fmtEur(budgetStats.max)}</div></div>
+            <div><div className="muted" style={{ fontSize: 12 }}>{t("rapport.budget.total")}</div><div style={{ fontWeight: 700 }}>{fmtEur(budgetStats.total3ans)}</div></div>
+          </div>
+          {budgetDeclare > 0 && (
+            <div className="muted" style={{ marginTop: 8, color: budgetDeclare >= budgetStats.moy ? C.teal : C.gold }}>
+              {budgetDeclare >= budgetStats.moy ? t("rapport.budget.confort") : t("rapport.budget.tendu")}
+            </div>
+          )}
         </div>
       )}
 
@@ -630,18 +707,30 @@ function Rapport({ piste, rapport, onNext }) {
         )}
       </div>
 
-      <div className="muted" style={{ margin: "6px 0" }}>Vos 10 pistes, issues de notre base vérifiée :</div>
+      <div className="muted" style={{ margin: "6px 0" }}>{t("rapport.pistes")}</div>
       {list.map((f) => (
         <div className="card" key={f.id}>
           <div style={{ fontWeight: 700 }}>{f.intitule}</div>
-          <div className="muted">{[f.etablissement, f.ville, f.niveau, f.voie].filter(Boolean).join(" · ")}{f.cout_annuel ? ` · ${f.cout_annuel} €/an` : ""}</div>
-          <div style={{ fontSize: 13, color: C.teal2, marginTop: 4 }}>Pourquoi : {f.explication}</div>
+          <div className="muted">{[f.etablissement, f.ville, f.niveau, f.voie].filter(Boolean).join(" · ")}</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
+            <span className="chip" style={{ margin: 0 }}>
+              {t("rapport.formation.cout")} : {f.cout_annuel ? fmtEur(f.cout_annuel) : t("rapport.formation.non_precise")}
+            </span>
+            <span className="chip" style={{ margin: 0 }}>
+              {f.code_rncp ? `${t("rapport.rncp.label")} : ${f.code_rncp}` : t("rapport.rncp.inconnu")}
+            </span>
+            {f.url && (
+              <a className="chip" style={{ margin: 0, textDecoration: "none", cursor: "pointer" }}
+                href={f.url} target="_blank" rel="noreferrer">fiche officielle ↗</a>
+            )}
+          </div>
+          <div style={{ fontSize: 13, color: C.teal2, marginTop: 6 }}>{t("rapport.pourquoi")} : {f.explication}</div>
         </div>
       ))}
 
       {piste && <VerifierEcole piste={piste} />}
 
-      {onNext && <button className="btn" onClick={onNext} style={{ width: "100%" }}>Passer au parcours de mobilité →</button>}
+      {onNext && <button className="btn" onClick={onNext} style={{ width: "100%" }}>{t("rapport.suivant")}</button>}
     </div>
   );
 }
@@ -653,6 +742,7 @@ function Rapport({ piste, rapport, onNext }) {
 // de générer sa feuille de route, ce qui évite de payer un parcours sur
 // une formation dont le titre RNCP a expiré.
 function VerifierEcole({ piste }) {
+  const { t } = useLang();
   const [ouvert, setOuvert] = useState(false);
   const [intitule, setIntitule] = useState("");
   const [etab, setEtab] = useState("");
@@ -663,7 +753,7 @@ function VerifierEcole({ piste }) {
 
   const verifier = async () => {
     if (!intitule.trim() && !code.trim()) {
-      setErr("Renseigne au moins l'intitulé de la formation ou le code RNCP."); return;
+      setErr(t("rapport.verifier.err_champs")); return;
     }
     setBusy(true); setErr("");
     try { setRes(await api.verifyRncp(piste.id, intitule, etab, code)); }
@@ -673,35 +763,34 @@ function VerifierEcole({ piste }) {
 
   const entete = res && (
     res.deconseille
-      ? { txt: "⚠ Titre non recommandé", col: C.danger, bg: URG.retard.bg }
+      ? { txt: t("rapport.verifier.statut.deconseille"), col: C.danger, bg: URG.retard.bg }
       : res.statut === "actif"
-      ? { txt: "✓ Titre reconnu — actif", col: C.teal, bg: URG.fait.bg }
+      ? { txt: t("rapport.verifier.statut.actif"), col: C.teal, bg: URG.fait.bg }
       : res.statut === "expire"
-      ? { txt: "⚠ Titre expiré", col: C.gold, bg: URG.bientot.bg }
-      : { txt: "ℹ À vérifier auprès de l'école", col: C.muted, bg: URG.avenir.bg }
+      ? { txt: t("rapport.verifier.statut.expire"), col: C.gold, bg: URG.bientot.bg }
+      : { txt: t("rapport.verifier.statut.indetermine"), col: C.muted, bg: URG.avenir.bg }
   );
 
   return (
     <div className="card">
-      <div style={{ fontWeight: 700, marginBottom: 4 }}>Tu as déjà une école en tête ?</div>
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>{t("rapport.verifier.titre")}</div>
       <div className="muted" style={{ marginBottom: ouvert ? 12 : 0 }}>
-        Vérifie que la formation est bien enregistrée au RNCP (titre reconnu par l'État) avant d'aller plus loin.
-        {!ouvert && " Aucun engagement — c'est gratuit et rapide."}
+        {t("rapport.verifier.aide")}{!ouvert && " " + t("rapport.verifier.gratuit")}
       </div>
       {!ouvert ? (
-        <button className="btn-ghost" onClick={() => setOuvert(true)}>Vérifier une école & sa formation</button>
+        <button className="btn-ghost" onClick={() => setOuvert(true)}>{t("rapport.verifier.bouton")}</button>
       ) : (
         <>
-          <input className="inp" placeholder="Intitulé de la formation (ex. Master Data Science)"
+          <input className="inp" placeholder={t("rapport.verifier.intitule")}
             value={intitule} onChange={(e) => setIntitule(e.target.value)} />
-          <input className="inp" placeholder="École / établissement (ex. EPITA)"
+          <input className="inp" placeholder={t("rapport.verifier.etab")}
             value={etab} onChange={(e) => setEtab(e.target.value)} />
-          <input className="inp" placeholder="Code RNCP si connu (ex. RNCP38363)"
+          <input className="inp" placeholder={t("rapport.verifier.code")}
             value={code} onChange={(e) => setCode(e.target.value)} />
           {err && <div style={{ color: C.danger, fontSize: 13, margin: "4px 0" }}>{err}</div>}
           <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
-            <button className="btn" disabled={busy} onClick={verifier}>{busy ? "Vérification…" : "Vérifier maintenant"}</button>
-            <button className="btn-ghost" onClick={() => { setOuvert(false); setRes(null); setErr(""); }}>Fermer</button>
+            <button className="btn" disabled={busy} onClick={verifier}>{busy ? t("rapport.verifier.encours") : t("rapport.verifier.maintenant")}</button>
+            <button className="btn-ghost" onClick={() => { setOuvert(false); setRes(null); setErr(""); }}>{t("rapport.verifier.fermer")}</button>
           </div>
 
           {res && res.statut && entete && (
@@ -710,9 +799,9 @@ function VerifierEcole({ piste }) {
               <div style={{ color: C.ink, fontSize: 13 }}>{res.message}</div>
               {(res.intitule || res.code_rncp || res.niveau || res.date_echeance) && (
                 <div style={{ marginTop: 8, fontSize: 13, color: C.ink }}>
-                  {res.intitule && <div><b>Titre :</b> {res.intitule}</div>}
-                  {res.code_rncp && <div><b>Numéro :</b> {res.code_rncp}</div>}
-                  {res.niveau && <div><b>Niveau :</b> {res.niveau}</div>}
+                  {res.intitule && <div><b>{t("rapport.verifier.intitule").split(" (")[0]} :</b> {res.intitule}</div>}
+                  {res.code_rncp && <div><b>{t("rapport.rncp.label")} :</b> {res.code_rncp}</div>}
+                  {res.niveau && <div><b>{t("rapport.profil.niveau")} :</b> {res.niveau}</div>}
                   {res.date_echeance && <div><b>Fin d'enregistrement :</b> {res.date_echeance}</div>}
                 </div>
               )}
