@@ -23,6 +23,9 @@ services:
     runtime: python
     plan: free
     region: frankfurt          # Latence correcte depuis l'Afrique centrale.
+    # Branche déployée. Utilise `main` en prod, ou pointe explicitement
+    # sur la branche de travail tant que la PR n'est pas mergée.
+    branch: claude/app-architecture-rag-integration-1d37vb
     rootDir: backend
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
     startCommand: |
