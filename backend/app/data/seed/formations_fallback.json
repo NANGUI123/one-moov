@@ -9,8 +9,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-lille.fr/formations/fr-00021208",
+      "code_rncp": "RNCP24514",
       "source": "seed"
     },
     {
@@ -22,8 +22,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-lyon2.fr/",
+      "code_rncp": "RNCP24473",
       "source": "seed"
     },
     {
@@ -35,8 +35,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.iut.u-bordeaux.fr/",
+      "code_rncp": "RNCP35475",
       "source": "seed"
     },
     {
@@ -49,7 +49,7 @@
       "cout_annuel": 0,
       "langue": "français",
       "url": "",
-      "code_rncp": "",
+      "code_rncp": "RNCP35340",
       "source": "seed"
     },
     {
@@ -61,8 +61,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-rennes.fr/",
+      "code_rncp": "RNCP34126",
       "source": "seed"
     },
     {
@@ -74,8 +74,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-grenoble-alpes.fr/",
+      "code_rncp": "RNCP34029",
       "source": "seed"
     },
     {
@@ -87,8 +87,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-lorraine.fr/",
+      "code_rncp": "RNCP34126",
       "source": "seed"
     },
     {
@@ -100,8 +100,8 @@
       "voie": "prive",
       "cout_annuel": 8500,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.epitech.eu/",
+      "code_rncp": "RNCP35053",
       "source": "seed"
     },
     {
@@ -113,8 +113,8 @@
       "voie": "prive",
       "cout_annuel": 9000,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.epita.fr/",
+      "code_rncp": "RNCP35583",
       "source": "seed"
     },
     {
@@ -126,8 +126,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.pantheonsorbonne.fr/",
+      "code_rncp": "RNCP24421",
       "source": "seed"
     },
     {
@@ -139,8 +139,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-nantes.fr/",
+      "code_rncp": "RNCP24425",
       "source": "seed"
     },
     {
@@ -152,8 +152,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://iut.univ-lyon1.fr/",
+      "code_rncp": "RNCP35387",
       "source": "seed"
     },
     {
@@ -166,7 +166,7 @@
       "cout_annuel": 0,
       "langue": "français",
       "url": "",
-      "code_rncp": "",
+      "code_rncp": "RNCP34031",
       "source": "seed"
     },
     {
@@ -178,8 +178,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://iae.univ-lille.fr/",
+      "code_rncp": "RNCP34031",
       "source": "seed"
     },
     {
@@ -191,8 +191,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.u-bordeaux.fr/",
+      "code_rncp": "RNCP34032",
       "source": "seed"
     },
     {
@@ -204,8 +204,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://dauphine.psl.eu/",
+      "code_rncp": "RNCP34030",
       "source": "seed"
     },
     {
@@ -217,8 +217,8 @@
       "voie": "prive",
       "cout_annuel": 9000,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://kedge.edu/",
+      "code_rncp": "RNCP35213",
       "source": "seed"
     },
     {
@@ -230,8 +230,8 @@
       "voie": "prive",
       "cout_annuel": 15000,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://em-lyon.com/",
+      "code_rncp": "RNCP35207",
       "source": "seed"
     },
     {
@@ -243,8 +243,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.umontpellier.fr/",
+      "code_rncp": "RNCP24428",
       "source": "seed"
     },
     {
@@ -256,8 +256,8 @@
       "voie": "public",
       "cout_annuel": 1000,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.sciencespo-toulouse.fr/",
+      "code_rncp": "RNCP24436",
       "source": "seed"
     },
     {
@@ -269,8 +269,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://iut.univ-lyon1.fr/",
+      "code_rncp": "RNCP35460",
       "source": "seed"
     },
     {
@@ -282,8 +282,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.u-paris2.fr/",
+      "code_rncp": "RNCP34505",
       "source": "seed"
     },
     {
@@ -295,8 +295,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.unistra.fr/",
+      "code_rncp": "RNCP34503",
       "source": "seed"
     },
     {
@@ -308,8 +308,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.u-bordeaux.fr/",
+      "code_rncp": "RNCP24418",
       "source": "seed"
     },
     {
@@ -321,8 +321,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-rennes2.fr/",
+      "code_rncp": "RNCP24544",
       "source": "seed"
     },
     {
@@ -334,8 +334,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://iut.univ-amu.fr/",
+      "code_rncp": "RNCP35478",
       "source": "seed"
     },
     {
@@ -348,7 +348,7 @@
       "cout_annuel": 0,
       "langue": "français",
       "url": "",
-      "code_rncp": "",
+      "code_rncp": "RNCP38830",
       "source": "seed"
     },
     {
@@ -360,8 +360,21 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-lille.fr/",
+      "code_rncp": "RNCP34294",
+      "source": "seed"
+    },
+    {
+      "intitule": "Master Ingénierie de la Santé",
+      "etablissement": "Université Paris Cité",
+      "ville": "Paris",
+      "domaine": "Santé Médecine",
+      "niveau": "master",
+      "voie": "public",
+      "cout_annuel": 243,
+      "langue": "français",
+      "url": "https://u-paris.fr/",
+      "code_rncp": "RNCP34292",
       "source": "seed"
     },
     {
@@ -373,8 +386,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-paris8.fr/",
+      "code_rncp": "RNCP24541",
       "source": "seed"
     },
     {
@@ -387,7 +400,7 @@
       "cout_annuel": 0,
       "langue": "français",
       "url": "",
-      "code_rncp": "",
+      "code_rncp": "RNCP35382",
       "source": "seed"
     },
     {
@@ -400,7 +413,7 @@
       "cout_annuel": 0,
       "langue": "français",
       "url": "",
-      "code_rncp": "",
+      "code_rncp": "RNCP31740",
       "source": "seed"
     },
     {
@@ -412,8 +425,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.unimes.fr/",
+      "code_rncp": "RNCP31490",
       "source": "seed"
     },
     {
@@ -425,8 +438,8 @@
       "voie": "prive",
       "cout_annuel": 8200,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.lisaa.com/",
+      "code_rncp": "RNCP34988",
       "source": "seed"
     },
     {
@@ -438,8 +451,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.u-bordeaux-montaigne.fr/",
+      "code_rncp": "RNCP34273",
       "source": "seed"
     },
     {
@@ -451,8 +464,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-tlse3.fr/",
+      "code_rncp": "RNCP24515",
       "source": "seed"
     },
     {
@@ -464,8 +477,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.sorbonne-universite.fr/",
+      "code_rncp": "RNCP24518",
       "source": "seed"
     },
     {
@@ -477,8 +490,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-lorraine.fr/",
+      "code_rncp": "RNCP24519",
       "source": "seed"
     },
     {
@@ -490,8 +503,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://iut.univ-nantes.fr/",
+      "code_rncp": "RNCP35494",
       "source": "seed"
     },
     {
@@ -503,8 +516,8 @@
       "voie": "public",
       "cout_annuel": 601,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.insa-lyon.fr/",
+      "code_rncp": "RNCP42247",
       "source": "seed"
     },
     {
@@ -516,8 +529,8 @@
       "voie": "public",
       "cout_annuel": 601,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://artsetmetiers.fr/",
+      "code_rncp": "RNCP34042",
       "source": "seed"
     },
     {
@@ -529,8 +542,8 @@
       "voie": "prive",
       "cout_annuel": 9500,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.esilv.fr/",
+      "code_rncp": "RNCP34035",
       "source": "seed"
     },
     {
@@ -542,8 +555,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.unistra.fr/",
+      "code_rncp": "RNCP24507",
       "source": "seed"
     },
     {
@@ -555,8 +568,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-lyon3.fr/",
+      "code_rncp": "RNCP24488",
       "source": "seed"
     },
     {
@@ -568,8 +581,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.univ-poitiers.fr/",
+      "code_rncp": "RNCP24469",
       "source": "seed"
     },
     {
@@ -581,8 +594,8 @@
       "voie": "public",
       "cout_annuel": 175,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://www.u-bordeaux.fr/",
+      "code_rncp": "RNCP24540",
       "source": "seed"
     },
     {
@@ -594,8 +607,8 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
-      "url": "",
-      "code_rncp": "",
+      "url": "https://u-paris.fr/",
+      "code_rncp": "RNCP34038",
       "source": "seed"
     },
     {
@@ -607,8 +620,398 @@
       "voie": "public",
       "cout_annuel": 243,
       "langue": "français",
+      "url": "https://www.unistra.fr/",
+      "code_rncp": "RNCP31678",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Sciences pour l'Environnement",
+      "etablissement": "Université de Pau",
+      "ville": "Pau",
+      "domaine": "Environnement Écologie",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://www.univ-pau.fr/",
+      "code_rncp": "RNCP24525",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Géographie & Aménagement",
+      "etablissement": "Université Paul-Valéry Montpellier 3",
+      "ville": "Montpellier",
+      "domaine": "Environnement Écologie",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://www.univ-montp3.fr/",
+      "code_rncp": "RNCP24437",
+      "source": "seed"
+    },
+    {
+      "intitule": "BUT Génie Biologique — Sciences de l'environnement",
+      "etablissement": "IUT de Perpignan",
+      "ville": "Perpignan",
+      "domaine": "Environnement Écologie",
+      "niveau": "but",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://iutp.univ-perp.fr/",
+      "code_rncp": "RNCP35478",
+      "source": "seed"
+    },
+    {
+      "intitule": "Master Sciences de l'Eau",
+      "etablissement": "AgroParisTech",
+      "ville": "Paris",
+      "domaine": "Environnement Écologie",
+      "niveau": "master",
+      "voie": "public",
+      "cout_annuel": 601,
+      "langue": "français",
+      "url": "https://www.agroparistech.fr/",
+      "code_rncp": "RNCP34277",
+      "source": "seed"
+    },
+    {
+      "intitule": "Master Énergies Renouvelables",
+      "etablissement": "Université Grenoble Alpes",
+      "ville": "Grenoble",
+      "domaine": "Environnement Écologie",
+      "niveau": "master",
+      "voie": "public",
+      "cout_annuel": 243,
+      "langue": "français",
+      "url": "https://www.univ-grenoble-alpes.fr/",
+      "code_rncp": "RNCP34043",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Information & Communication",
+      "etablissement": "Université Bordeaux Montaigne",
+      "ville": "Bordeaux",
+      "domaine": "Communication Médias",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://www.u-bordeaux-montaigne.fr/",
+      "code_rncp": "RNCP24475",
+      "source": "seed"
+    },
+    {
+      "intitule": "BUT Information-Communication",
+      "etablissement": "IUT de Lannion",
+      "ville": "Lannion",
+      "domaine": "Communication Médias",
+      "niveau": "but",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://iut-lannion.univ-rennes.fr/",
+      "code_rncp": "RNCP35490",
+      "source": "seed"
+    },
+    {
+      "intitule": "Master Journalisme",
+      "etablissement": "Sciences Po Lille",
+      "ville": "Lille",
+      "domaine": "Communication Médias",
+      "niveau": "master",
+      "voie": "public",
+      "cout_annuel": 1000,
+      "langue": "français",
+      "url": "https://www.sciencespo-lille.eu/",
+      "code_rncp": "RNCP34075",
+      "source": "seed"
+    },
+    {
+      "intitule": "Master Communication d'Entreprise",
+      "etablissement": "CELSA — Sorbonne Université",
+      "ville": "Paris",
+      "domaine": "Communication Médias",
+      "niveau": "master",
+      "voie": "public",
+      "cout_annuel": 601,
+      "langue": "français",
+      "url": "https://www.celsa.fr/",
+      "code_rncp": "RNCP34075",
+      "source": "seed"
+    },
+    {
+      "intitule": "Bachelor Communication & Publicité",
+      "etablissement": "SUP DE PUB — INSEEC",
+      "ville": "Paris",
+      "domaine": "Communication Médias",
+      "niveau": "licence",
+      "voie": "prive",
+      "cout_annuel": 8900,
+      "langue": "français",
+      "url": "https://www.supdepub.com/",
+      "code_rncp": "RNCP36126",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Sociologie",
+      "etablissement": "Université Rennes 2",
+      "ville": "Rennes",
+      "domaine": "Social Éducation",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://www.univ-rennes2.fr/",
+      "code_rncp": "RNCP24475",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Sciences de l'Éducation",
+      "etablissement": "Université Paris Nanterre",
+      "ville": "Nanterre",
+      "domaine": "Social Éducation",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://www.parisnanterre.fr/",
+      "code_rncp": "RNCP24444",
+      "source": "seed"
+    },
+    {
+      "intitule": "BUT Carrières Sociales",
+      "etablissement": "IUT de Grenoble",
+      "ville": "Grenoble",
+      "domaine": "Social Éducation",
+      "niveau": "but",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://iut2.univ-grenoble-alpes.fr/",
+      "code_rncp": "RNCP35461",
+      "source": "seed"
+    },
+    {
+      "intitule": "Diplôme d'État d'Assistant de Service Social",
+      "etablissement": "IRTS Île-de-France",
+      "ville": "Neuilly-sur-Marne",
+      "domaine": "Social Éducation",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 0,
+      "langue": "français",
+      "url": "https://www.irts-idf.eu/",
+      "code_rncp": "RNCP38361",
+      "source": "seed"
+    },
+    {
+      "intitule": "Master MEEF (Métiers de l'Enseignement)",
+      "etablissement": "INSPÉ Lyon",
+      "ville": "Lyon",
+      "domaine": "Social Éducation",
+      "niveau": "master",
+      "voie": "public",
+      "cout_annuel": 243,
+      "langue": "français",
+      "url": "https://inspe.univ-lyon1.fr/",
+      "code_rncp": "RNCP31851",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Tourisme",
+      "etablissement": "Université d'Angers",
+      "ville": "Angers",
+      "domaine": "Tourisme Hôtellerie",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://www.univ-angers.fr/",
+      "code_rncp": "RNCP24422",
+      "source": "seed"
+    },
+    {
+      "intitule": "BTS Tourisme",
+      "etablissement": "Lycée Rocroy Saint-Vincent-de-Paul",
+      "ville": "Paris",
+      "domaine": "Tourisme Hôtellerie",
+      "niveau": "bts",
+      "voie": "public",
+      "cout_annuel": 0,
+      "langue": "français",
       "url": "",
-      "code_rncp": "",
+      "code_rncp": "RNCP35341",
+      "source": "seed"
+    },
+    {
+      "intitule": "BTS Management en Hôtellerie-Restauration",
+      "etablissement": "Lycée Hôtelier de Nice",
+      "ville": "Nice",
+      "domaine": "Tourisme Hôtellerie",
+      "niveau": "bts",
+      "voie": "public",
+      "cout_annuel": 0,
+      "langue": "français",
+      "url": "",
+      "code_rncp": "RNCP34419",
+      "source": "seed"
+    },
+    {
+      "intitule": "Bachelor International Hospitality Management",
+      "etablissement": "Vatel",
+      "ville": "Lyon",
+      "domaine": "Tourisme Hôtellerie",
+      "niveau": "licence",
+      "voie": "prive",
+      "cout_annuel": 11500,
+      "langue": "français",
+      "url": "https://www.vatel.fr/",
+      "code_rncp": "RNCP35548",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Sciences Agronomiques",
+      "etablissement": "Institut Agro Rennes-Angers",
+      "ville": "Rennes",
+      "domaine": "Agriculture Agronomie",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 601,
+      "langue": "français",
+      "url": "https://www.institut-agro-rennes-angers.fr/",
+      "code_rncp": "RNCP24418",
+      "source": "seed"
+    },
+    {
+      "intitule": "BUT Génie Biologique — Agronomie",
+      "etablissement": "IUT de Périgueux",
+      "ville": "Périgueux",
+      "domaine": "Agriculture Agronomie",
+      "niveau": "but",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://iut-perigueux.u-bordeaux.fr/",
+      "code_rncp": "RNCP35478",
+      "source": "seed"
+    },
+    {
+      "intitule": "Ingénieur Agronome",
+      "etablissement": "AgroParisTech",
+      "ville": "Palaiseau",
+      "domaine": "Agriculture Agronomie",
+      "niveau": "master",
+      "voie": "public",
+      "cout_annuel": 601,
+      "langue": "français",
+      "url": "https://www.agroparistech.fr/",
+      "code_rncp": "RNCP34042",
+      "source": "seed"
+    },
+    {
+      "intitule": "Ingénieur en Agriculture",
+      "etablissement": "ISARA Lyon",
+      "ville": "Lyon",
+      "domaine": "Agriculture Agronomie",
+      "niveau": "master",
+      "voie": "prive",
+      "cout_annuel": 7500,
+      "langue": "français",
+      "url": "https://www.isara.fr/",
+      "code_rncp": "RNCP34036",
+      "source": "seed"
+    },
+    {
+      "intitule": "Master Sciences et Techniques des Aliments",
+      "etablissement": "Institut Agro Montpellier",
+      "ville": "Montpellier",
+      "domaine": "Agriculture Agronomie",
+      "niveau": "master",
+      "voie": "public",
+      "cout_annuel": 601,
+      "langue": "français",
+      "url": "https://www.institut-agro-montpellier.fr/",
+      "code_rncp": "RNCP34039",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Musicologie",
+      "etablissement": "Sorbonne Université",
+      "ville": "Paris",
+      "domaine": "Arts Design",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://www.sorbonne-universite.fr/",
+      "code_rncp": "RNCP24429",
+      "source": "seed"
+    },
+    {
+      "intitule": "Diplôme National Supérieur Professionnel de Musicien",
+      "etablissement": "CNSMD Paris",
+      "ville": "Paris",
+      "domaine": "Arts Design",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 550,
+      "langue": "français",
+      "url": "https://www.conservatoiredeparis.fr/",
+      "code_rncp": "RNCP37010",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Chimie",
+      "etablissement": "Université Claude Bernard Lyon 1",
+      "ville": "Lyon",
+      "domaine": "Sciences Ingénierie",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://www.univ-lyon1.fr/",
+      "code_rncp": "RNCP24467",
+      "source": "seed"
+    },
+    {
+      "intitule": "Licence Biologie",
+      "etablissement": "Aix-Marseille Université",
+      "ville": "Marseille",
+      "domaine": "Sciences Ingénierie",
+      "niveau": "licence",
+      "voie": "public",
+      "cout_annuel": 175,
+      "langue": "français",
+      "url": "https://www.univ-amu.fr/",
+      "code_rncp": "RNCP24465",
+      "source": "seed"
+    },
+    {
+      "intitule": "Master International Business",
+      "etablissement": "HEC Paris",
+      "ville": "Jouy-en-Josas",
+      "domaine": "Commerce Gestion",
+      "niveau": "master",
+      "voie": "prive",
+      "cout_annuel": 25000,
+      "langue": "français",
+      "url": "https://www.hec.edu/",
+      "code_rncp": "RNCP34031",
+      "source": "seed"
+    },
+    {
+      "intitule": "BTS Comptabilité et Gestion",
+      "etablissement": "Lycée Turgot",
+      "ville": "Paris",
+      "domaine": "Commerce Gestion",
+      "niveau": "bts",
+      "voie": "public",
+      "cout_annuel": 0,
+      "langue": "français",
+      "url": "",
+      "code_rncp": "RNCP35521",
       "source": "seed"
     }
   ]

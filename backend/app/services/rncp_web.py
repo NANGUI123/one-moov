@@ -93,13 +93,17 @@ def _map(d: dict) -> dict:
     if d.get("commentaire"):
         msg += f" {d['commentaire']}"
 
+    code = (d.get("code_rncp", "") or "").upper().replace(" ", "")
+    url_fiche = (f"https://www.francecompetences.fr/recherche/rncp/{code}/" if code
+                 else "https://www.francecompetences.fr/recherche_certificationprofessionnelle/")
     return {
         "statut": statut,
-        "code_rncp": d.get("code_rncp", "") or "",
+        "code_rncp": code,
         "intitule": d.get("intitule_officiel", "") or "",
         "certificateurs": [d["certificateur"]] if d.get("certificateur") else [],
         "niveau": d.get("niveau", "") or "",
         "date_echeance": d.get("date_echeance", "") or "",
+        "url_fiche": url_fiche,
         "deconseille": deconseille,
         "message": msg,
         "date_verif": "",

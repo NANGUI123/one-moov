@@ -51,6 +51,30 @@ def _startup():
     except Exception as e:  # noqa: BLE001
         logger.warning(f"État notifications indéterminé : {e}")
 
+    # Sync RNCP en arrière-plan si la base est vide. On ne bloque JAMAIS le
+    # démarrage (Render tue le service au-delà de 30s d'inactivité HTTP), et
+    # une erreur de téléchargement n'empêche pas l'app de servir : le
+    # fallback rncp_client renvoie un lien direct francecompetences.fr en
+    # attendant la fin du sync. L'étudiant ne voit jamais l'instruction
+    # technique « python -m app.scripts.sync_rncp ».
+    import threading
+    def _sync_rncp_bg():
+        try:
+            from app.db import SessionLocal
+            from app.models import RncpFiche
+            from app.data.ingestion import rncp as _rncp_ingest
+            with SessionLocal() as _db:
+                if _db.query(RncpFiche).count() > 0:
+                    logger.info("RNCP : base déjà peuplée, sync ignoré")
+                    return
+                logger.info("RNCP : sync en arrière-plan démarré…")
+                n = _rncp_ingest.sync(_db)
+                logger.info(f"RNCP : sync terminé — {n} fiches chargées")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"RNCP : sync arrière-plan échoué ({e}). "
+                           "Le fallback lien direct France Compétences prend le relais.")
+    threading.Thread(target=_sync_rncp_bg, name="rncp-sync", daemon=True).start()
+
 
 @app.get("/health")
 def health():

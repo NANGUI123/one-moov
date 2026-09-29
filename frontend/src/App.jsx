@@ -710,27 +710,183 @@ function Rapport({ piste, rapport, onNext }) {
       <div className="muted" style={{ margin: "6px 0" }}>{t("rapport.pistes")}</div>
       {list.map((f) => (
         <div className="card" key={f.id}>
-          <div style={{ fontWeight: 700 }}>{f.intitule}</div>
-          <div className="muted">{[f.etablissement, f.ville, f.niveau, f.voie].filter(Boolean).join(" · ")}</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 6 }}>
-            <span className="chip" style={{ margin: 0 }}>
-              {t("rapport.formation.cout")} : {f.cout_annuel ? fmtEur(f.cout_annuel) : t("rapport.formation.non_precise")}
-            </span>
-            <span className="chip" style={{ margin: 0 }}>
-              {f.code_rncp ? `${t("rapport.rncp.label")} : ${f.code_rncp}` : t("rapport.rncp.inconnu")}
-            </span>
-            {f.url && (
-              <a className="chip" style={{ margin: 0, textDecoration: "none", cursor: "pointer" }}
-                href={f.url} target="_blank" rel="noreferrer">fiche officielle ↗</a>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 700 }}>{f.etablissement || f.intitule}</div>
+              <div className="muted" style={{ fontSize: 13 }}>
+                {[f.ville, f.cout_annuel ? `${fmtEur(f.cout_annuel)} par an` : null].filter(Boolean).join(" · ")}
+              </div>
+            </div>
+            {f.voie && (
+              <span className="chip" style={{ margin: 0, flexShrink: 0 }}>
+                {f.voie === "prive" ? (t("rapport.rncp.public_prive") === "Public" ? "Privé" : "Private") : t("rapport.rncp.public_prive")}
+              </span>
             )}
           </div>
-          <div style={{ fontSize: 13, color: C.teal2, marginTop: 6 }}>{t("rapport.pourquoi")} : {f.explication}</div>
+
+          <RncpCarte formation={f} piste={piste} />
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 8, flexWrap: "wrap" }}>
+            {f.url ? (
+              <a className="link" href={f.url} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
+                {t("rapport.rncp.site_etab")}
+              </a>
+            ) : <span />}
+            <div className="muted" style={{ fontSize: 12 }}>
+              {f.explication ? `${t("rapport.pourquoi")} : ${f.explication}` : ""}
+            </div>
+          </div>
         </div>
       ))}
 
       {piste && <VerifierEcole piste={piste} />}
 
       {onNext && <button className="btn" onClick={onNext} style={{ width: "100%" }}>{t("rapport.suivant")}</button>}
+    </div>
+  );
+}
+
+// ── Encart RNCP par formation ──────────────────────────────────────
+// Deux états visuels selon que la formation a un code_rncp connu :
+// - avec code    → chip cliquable "RNCP12345 · Niveau 7". Au clic, on
+//                  déplie l'encart détaillé (intitulé officiel, école,
+//                  date de vérif, lien site officiel) — comme dans les
+//                  mockups fournis par l'utilisateur.
+// - sans code    → bouton « Vérifier le diplôme au RNCP » qui lance
+//                  /api/rncp/verify puis affiche le même encart.
+// L'encart utilise le résultat déjà stocké dans la formation quand la
+// piste connaît le code, sinon fait un round-trip API.
+function RncpCarte({ formation, piste }) {
+  const { t } = useLang();
+  const [ouvert, setOuvert] = useState(false);
+  const [detail, setDetail] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  const codeConnu = !!formation.code_rncp;
+
+  // Ouverture avec code connu : appelle l'API pour récupérer les infos
+  // détaillées (intitulé officiel, certificateur, niveau, date d'échéance),
+  // et si l'API est indisponible on retombe sur ce que la formation dit.
+  const ouvrirAvecCode = async () => {
+    setOuvert(true);
+    if (detail) return;
+    setBusy(true); setErr("");
+    try {
+      const r = await api.verifyRncp(piste?.id || null,
+        formation.intitule || "", formation.etablissement || "", formation.code_rncp);
+      setDetail(r);
+    } catch {
+      // Fallback : au moins on a le code et le lien direct.
+      const c = (formation.code_rncp || "").toUpperCase().replace(/\s/g, "");
+      setDetail({
+        code_rncp: c, intitule: formation.intitule || "",
+        certificateurs: formation.etablissement ? [formation.etablissement] : [],
+        niveau: "", date_echeance: "", date_verif: "",
+        url_fiche: `https://www.francecompetences.fr/recherche/rncp/${c}/`,
+        statut: "indetermine", deconseille: false,
+      });
+    }
+    setBusy(false);
+  };
+
+  // Ouverture sans code : lance la vérification par intitulé + établissement.
+  const verifierSansCode = async () => {
+    setOuvert(true);
+    if (detail) return;
+    setBusy(true); setErr("");
+    try {
+      const r = await api.verifyRncp(piste?.id || null,
+        formation.intitule || "", formation.etablissement || "", "");
+      setDetail(r);
+    } catch (e) {
+      setErr(t("rapport.rncp.err"));
+    }
+    setBusy(false);
+  };
+
+  const langueEn = t("rapport.rncp.public_prive") !== "Public";
+  const niveauLibelle = (niv) => {
+    // Renvoie « Niveau 7 » ou l'intitulé brut de France Compétences.
+    if (!niv) return "";
+    const m = String(niv).match(/(\d+)/);
+    return m ? (langueEn ? `Level ${m[1]}` : `Niveau ${m[1]}`) : niv;
+  };
+  const dateFr = (s) => {
+    if (!s) return "";
+    const d = new Date(s);
+    if (isNaN(d)) return s;
+    return d.toLocaleDateString(langueEn ? "en-GB" : "fr-FR",
+      { day: "2-digit", month: "long", year: "numeric" });
+  };
+
+  // Chip fermé
+  if (!ouvert) {
+    if (codeConnu) {
+      return (
+        <button className="chip" onClick={ouvrirAvecCode}
+          style={{ margin: "8px 0 0", cursor: "pointer", background: "var(--teal-soft)",
+                   color: "var(--teal-2)", fontWeight: 600, border: 0 }}>
+            {formation.code_rncp}
+        </button>
+      );
+    }
+    return (
+      <button className="btn-ghost" onClick={verifierSansCode}
+        style={{ margin: "8px 0 0" }}>
+        {t("rapport.rncp.inconnu")}
+      </button>
+    );
+  }
+
+  // Encart déplié
+  const code = detail?.code_rncp || formation.code_rncp || "";
+  const intitule = detail?.intitule || formation.intitule || "";
+  const cert = (detail?.certificateurs?.[0]) || formation.etablissement || "";
+  const niveau = niveauLibelle(detail?.niveau);
+  const dateVerif = dateFr(detail?.date_verif || new Date().toISOString().slice(0, 10));
+  const urlFiche = detail?.url_fiche
+    || (code ? `https://www.francecompetences.fr/recherche/rncp/${code}/`
+             : "https://www.francecompetences.fr/recherche_certificationprofessionnelle/");
+
+  return (
+    <div style={{
+      marginTop: 10, padding: 12, borderRadius: 12,
+      background: "var(--surface-2)", border: "1px solid var(--line)",
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ fontWeight: 700, color: C.teal2 }}>{code || "—"}</div>
+        {niveau && (
+          <span className="chip" style={{ margin: 0, background: "var(--teal-soft)", color: "var(--teal-2)" }}>
+            {niveau}
+          </span>
+        )}
+      </div>
+      {busy ? (
+        <div className="muted" style={{ marginTop: 8 }}>{t("rapport.rncp.encours")}</div>
+      ) : err ? (
+        <div style={{ color: C.gold, marginTop: 8, fontSize: 13 }}>{err}</div>
+      ) : (
+        <>
+          {intitule && <div style={{ marginTop: 8 }}>{intitule}</div>}
+          {cert && <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>{cert}</div>}
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span className="muted" style={{ fontSize: 12 }}>
+              {t("rapport.rncp.verifie_le")} {dateVerif}
+            </span>
+            <a href={urlFiche} target="_blank" rel="noreferrer"
+              className="link" style={{ fontSize: 13, fontWeight: 600 }}>
+              {t("rapport.rncp.fiche_officielle")} ↗
+            </a>
+          </div>
+        </>
+      )}
+      <div style={{ marginTop: 8 }}>
+        <button className="link" style={{ fontSize: 12, background: "none", border: 0, padding: 0, cursor: "pointer" }}
+          onClick={() => setOuvert(false)}>
+          {t("rapport.rncp.close")}
+        </button>
+      </div>
     </div>
   );
 }
