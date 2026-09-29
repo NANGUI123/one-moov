@@ -54,10 +54,25 @@ def _consommer_jeton(db: Session, token: str, kind: str) -> User | None:
     return db.get(User, row.user_id)
 
 
+def _base_publique() -> str:
+    """Renvoie PUBLIC_BASE_URL, en s'assurant qu'elle a bien un schéma.
+
+    Sur Render, `fromService.hostport` fournit le hostname seul
+    (ex. `one-moov-api.onrender.com`). Un préfixe `https://` est ajouté
+    quand il manque, et le slash final est retiré.
+    """
+    b = (settings.PUBLIC_BASE_URL or "").strip().rstrip("/")
+    if not b:
+        return "http://localhost:8000"
+    if not b.startswith(("http://", "https://")):
+        b = "https://" + b
+    return b
+
+
 def _envoyer(db: Session, user: User, kind: str) -> dict:
     token = _emettre_jeton(db, user.id, kind)
     chemin = f"/api/auth/{'verify' if kind == 'verify' else 'reset'}?token={token}"
-    absolu = f"{settings.PUBLIC_BASE_URL}{chemin}"
+    absolu = f"{_base_publique()}{chemin}"
     if kind == "verify":
         sujet = "One Moov — vérifiez votre adresse e-mail"
         html = _mail_html("Bienvenue sur One Moov",
@@ -69,8 +84,11 @@ def _envoyer(db: Session, user: User, kind: str) -> dict:
                           "Vous avez demandé à réinitialiser votre mot de passe :",
                           "Choisir un nouveau mot de passe", absolu)
     envoye = mailer.envoyer(user.email, sujet, html)
-    # En mode démo (pas de SMTP), on renvoie le lien relatif pour permettre le test.
-    return {"envoye": envoye, "demo_lien": None if envoye else chemin}
+    # En mode démo (pas de SMTP), on renvoie le lien ABSOLU. Le front est
+    # servi par Cloudflare Pages, le back par Render : un lien relatif
+    # tomberait sur le SPA fallback de Cloudflare (qui rerouterait sur
+    # « Créer un compte » au lieu de vérifier le jeton).
+    return {"envoye": envoye, "demo_lien": None if envoye else absolu}
 
 
 # ── Inscription / connexion ────────────────────────────────────────
