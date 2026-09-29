@@ -777,13 +777,13 @@ function RncpCarte({ formation, piste }) {
         formation.intitule || "", formation.etablissement || "", formation.code_rncp);
       setDetail(r);
     } catch {
-      // Fallback : au moins on a le code et le lien direct.
+      // Fallback : au moins on a le code et le lien vers la recherche officielle.
       const c = (formation.code_rncp || "").toUpperCase().replace(/\s/g, "");
       setDetail({
         code_rncp: c, intitule: formation.intitule || "",
         certificateurs: formation.etablissement ? [formation.etablissement] : [],
         niveau: "", date_echeance: "", date_verif: "",
-        url_fiche: `https://www.francecompetences.fr/recherche/rncp/${c}/`,
+        url_fiche: `https://www.francecompetences.fr/recherche_certificationprofessionnelle/?text=${c}`,
         statut: "indetermine", deconseille: false,
       });
     }
@@ -846,7 +846,7 @@ function RncpCarte({ formation, piste }) {
   const niveau = niveauLibelle(detail?.niveau);
   const dateVerif = dateFr(detail?.date_verif || new Date().toISOString().slice(0, 10));
   const urlFiche = detail?.url_fiche
-    || (code ? `https://www.francecompetences.fr/recherche/rncp/${code}/`
+    || (code ? `https://www.francecompetences.fr/recherche_certificationprofessionnelle/?text=${code}`
              : "https://www.francecompetences.fr/recherche_certificationprofessionnelle/");
 
   return (
