@@ -19,6 +19,7 @@ from app.schemas import RegisterIn, LoginIn, EmailIn, TokenOut, PAYS_ACCEPTES
 from app.security import (hash_password, verify_password, create_token,
                          valider_mot_de_passe, nouveau_jeton)
 from app.services import mailer
+from app.services.urls import base_publique as _base_publique
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 settings = get_settings()
@@ -52,35 +53,6 @@ def _consommer_jeton(db: Session, token: str, kind: str) -> User | None:
     row.used = True
     db.commit()
     return db.get(User, row.user_id)
-
-
-def _base_publique() -> str:
-    """Renvoie PUBLIC_BASE_URL, en s'assurant qu'elle a bien un schéma
-    et un domaine résolvable depuis un navigateur.
-
-    Trois cas gérés :
-      - vide → `http://localhost:8000` (développement) ;
-      - hostname sans schéma (`one-moov-api` ou `one-moov-api:10000`) →
-        interprété comme un service Render interne : on retire le port,
-        on ajoute `.onrender.com` si nécessaire, et on préfixe `https://`.
-        Ce cas apparaît quand la variable est calculée par
-        `fromService.host` ou `fromService.hostport` de Render : la valeur
-        renvoyée est le hostname INTERNE, pas résolvable depuis un
-        navigateur d'étudiant ;
-      - URL déjà complète (`https://...`) → renvoyée telle quelle, sans
-        le slash final.
-    """
-    b = (settings.PUBLIC_BASE_URL or "").strip().rstrip("/")
-    if not b:
-        return "http://localhost:8000"
-    if b.startswith(("http://", "https://")):
-        return b
-    # Hostname bare : hostname:port ou hostname
-    hote = b.split(":", 1)[0]
-    if "." not in hote:
-        # Nom de service Render interne → domaine public correspondant.
-        hote = f"{hote}.onrender.com"
-    return f"https://{hote}"
 
 
 def _envoyer(db: Session, user: User, kind: str) -> dict:

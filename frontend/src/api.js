@@ -38,7 +38,7 @@ export const api = {
   getPiste: (id) => req("GET", `/pistes/${id}`),
 
   // Orientation (features 1, 2)
-  orientaChat: (piste_id, messages) => req("POST", "/orientation/chat", { piste_id, messages }),
+  orientaChat: (piste_id, messages, mode = "libre") => req("POST", "/orientation/chat", { piste_id, messages, mode }),
   formations: (piste_id, messages, profil = null) => req("POST", "/orientation/formations", { piste_id, messages, profil }),
   rapport: (piste_id, messages, profil = null) => req("POST", "/orientation/rapport", { piste_id, messages, profil }),
 

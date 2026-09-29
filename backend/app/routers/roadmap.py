@@ -53,15 +53,21 @@ def niveaux(piste_id: int | None = None, db: Session = Depends(get_db),
 
 @router.post("/voie")
 def choisir_voie(body: VoieIn, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
-    if body.voie not in ("public", "prive"):
-        raise HTTPException(422, "voie doit être 'public' ou 'prive'")
+    # `mixte` = public + privé étudiés en parallèle. Le RNCP reste requis
+    # côté privé, mais l'étudiant garde une roadmap publique en secours.
+    if body.voie not in ("public", "prive", "mixte"):
+        raise HTTPException(422, "voie doit être 'public', 'prive' ou 'mixte'")
     p = _owned(db, body.piste_id, user)
     p.voie = body.voie
     db.commit()
+    messages = {
+        "public": "Voie publique : la roadmap est standardisée.",
+        "prive": "Pour le privé, vérifie d'abord le titre RNCP.",
+        "mixte": "Les deux voies en parallèle : vérifie le titre RNCP côté privé pour ne pas perdre l'année.",
+    }
     return {"piste_id": p.id, "voie": p.voie,
-            "rncp_requis": body.voie == "prive",
-            "message": "Pour le privé, vérifie d'abord le titre RNCP." if body.voie == "prive"
-                       else "Voie publique : la roadmap est standardisée."}
+            "rncp_requis": body.voie in ("prive", "mixte"),
+            "message": messages[body.voie]}
 
 
 class GenerateIn(BaseModel):

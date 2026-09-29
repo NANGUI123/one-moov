@@ -8,6 +8,7 @@ parcours sans compte marchand. Le vrai flux s'active dès que les clés sont là
 import logging
 import httpx
 from app.config import get_settings
+from app.services.urls import absolu
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -20,12 +21,14 @@ def is_live() -> bool:
 
 
 def init_payment(transaction_id: str, amount_fcfa: int, description: str) -> dict:
-    notify = f"{settings.PUBLIC_BASE_URL}/api/paiement/webhook"
-    ret = f"{settings.PUBLIC_BASE_URL}/api/paiement/retour?tx={transaction_id}"
+    notify = absolu("/api/paiement/webhook")
+    ret = absolu(f"/api/paiement/retour?tx={transaction_id}")
     if not is_live():
-        # SANDBOX : page de paiement simulée servie par notre API. URL RELATIVE pour
-        # fonctionner quel que soit l'hôte (localhost, tunnel, déploiement) sans config.
-        return {"payment_url": f"/api/paiement/sandbox?tx={transaction_id}",
+        # SANDBOX : page de paiement simulée servie par notre API. On construit
+        # l'URL en ABSOLU pointant sur l'API, sinon le front sur Cloudflare
+        # Pages sert son SPA fallback (index.html) et l'étudiant retombe sur
+        # l'orientation au lieu d'arriver sur la page de simulation.
+        return {"payment_url": absolu(f"/api/paiement/sandbox?tx={transaction_id}"),
                 "transaction_id": transaction_id, "mode": "SANDBOX"}
     try:
         payload = {

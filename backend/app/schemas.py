@@ -46,6 +46,10 @@ class Message(BaseModel):
 class ChatIn(BaseModel):
     piste_id: int | None = None
     messages: list[Message]
+    # "guidee" = questionnaire fixe (marche sans LLM) ; "libre" = conversation
+    # portée par le LLM. Vide => bascule automatique : libre si LLM dispo,
+    # guidée sinon.
+    mode: str = ""
     max_tokens: int | None = 800
 
 

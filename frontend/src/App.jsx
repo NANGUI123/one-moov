@@ -447,23 +447,40 @@ function parseChoices(text) {
 
 function Orientation({ piste, prenom, onDone }) {
   const hi = prenom ? `Salut ${prenom} !` : "Bonjour !";
-  const GREET = [
+  // Deux modes exposés à l'étudiant : « guidée » suit un questionnaire
+  // fixe (sept étapes prévisibles, marche sans IA) ; « libre » ouvre une
+  // vraie conversation portée par le LLM. Le back accepte les deux via
+  // le paramètre mode ; on renvoie un premier message adapté à chacun.
+  const [modeConv, setModeConv] = useState("libre");
+  const GREET_LIBRE = [
     { role: "assistant", content: `${hi} Je suis Moov, ton conseiller d'orientation. Mon rôle : t'aider à y voir clair et à bâtir un projet d'études en France cohérent — le côté académique comme le côté professionnel.` },
     { role: "assistant", content: "On va discuter quelques minutes, comme un vrai entretien. Plus tu es précis, meilleures seront tes recommandations. Pour commencer : où en es-tu dans ton parcours, et qu'est-ce qui te donne envie d'étudier en France ?" },
   ];
-  const [msgs, setMsgs] = useState(GREET);
+  const GREET_GUIDEE = [
+    { role: "assistant", content: `${hi} Je suis Moov. On va passer sept questions courtes pour cerner ton projet — clique sur une réponse ou écris la tienne.` },
+  ];
+  const [msgs, setMsgs] = useState(GREET_LIBRE);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [pret, setPret] = useState(false);
   const endRef = useRef(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
 
+  // Change de mode : reset la conversation. On ne mélange pas les
+  // greetings, ça déroute l'étudiant plus qu'autre chose.
+  const basculer = (m) => {
+    if (m === modeConv) return;
+    setModeConv(m);
+    setMsgs(m === "guidee" ? GREET_GUIDEE : GREET_LIBRE);
+    setPret(false); setInput("");
+  };
+
   async function send(content) {
     if (!content.trim() || busy) return;
     const next = [...msgs, { role: "user", content }];
     setMsgs(next); setInput(""); setBusy(true);
     try {
-      const r = await api.orientaChat(piste?.id, next);
+      const r = await api.orientaChat(piste?.id, next, modeConv);
       setMsgs([...next, { role: "assistant", content: r.content }]);
       if (r.pret) setPret(true);
     } catch (e) { setMsgs([...next, { role: "assistant", content: "Erreur : " + e.message }]); }
@@ -484,6 +501,19 @@ function Orientation({ piste, prenom, onDone }) {
   return (
     <div>
       <h2>Conseiller d'orientation</h2>
+      <div style={{ marginBottom: 12 }}>
+        <div className="seg" style={{ width: "100%", display: "flex" }}>
+          <button className={modeConv === "guidee" ? "on" : ""} style={{ flex: 1 }}
+            onClick={() => basculer("guidee")}>Guidée</button>
+          <button className={modeConv === "libre" ? "on" : ""} style={{ flex: 1 }}
+            onClick={() => basculer("libre")}>Libre</button>
+        </div>
+        <div className="muted" style={{ marginTop: 6 }}>
+          {modeConv === "guidee"
+            ? "Sept questions courtes, ordre fixe. Rapide et prévisible."
+            : "Vraie conversation avec Moov. Plus riche, quelques minutes de plus."}
+        </div>
+      </div>
       <div className="card" style={{ minHeight: 260 }}>
         {msgs.map((m, i) => {
           const t = m.content.replace(/\[CHOICES\][\s\S]*?\[\/CHOICES\]/, "").replace(/\[\[PRET\]\]/g, "").trim();
@@ -628,10 +658,16 @@ function Parcours({ piste, onPaid }) {
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <button className={voie === "public" ? "btn" : "btn-ghost"} onClick={() => choisir("public")}>Public</button>
           <button className={voie === "prive" ? "btn" : "btn-ghost"} onClick={() => choisir("prive")}>Privé</button>
+          <button className={voie === "mixte" ? "btn" : "btn-ghost"} onClick={() => choisir("mixte")}>Les deux</button>
         </div>
+        {voie === "mixte" && (
+          <div className="muted" style={{ marginTop: 8 }}>
+            Public et privé menés en parallèle : plus de chances d'admission, la vérification du titre RNCP reste indispensable côté privé.
+          </div>
+        )}
       </div>
 
-      {voie === "prive" && (
+      {(voie === "prive" || voie === "mixte") && (
         <div className="card">
           <div style={{ fontWeight: 700, marginBottom: 6 }}>Vérification du titre RNCP</div>
           <input className="inp" placeholder="Intitulé de la formation" value={intitule} onChange={(e) => setIntitule(e.target.value)} />
