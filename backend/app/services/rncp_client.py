@@ -31,12 +31,19 @@ def _norm(s: str) -> str:
 
 
 def _url_fiche(code_rncp: str) -> str:
-    """Lien direct vers la fiche officielle France Compétences.
-    Le pattern d'URL est stable et fonctionne pour les codes RNCP et RS."""
+    """Lien vers la fiche officielle France Compétences.
+
+    Les URL individuelles /recherche/rncp/<code>/ répondent en 404 depuis la
+    refonte du site — l'ancien pattern avec le préfixe RNCP n'est plus stable.
+    On passe donc par le moteur de recherche officiel avec le code en
+    paramètre : ça amène l'étudiant directement sur la fiche recherchée
+    (0 ou 1 résultat, généralement 1), et si le code n'existe plus il tombe
+    sur la page de recherche officielle plutôt que sur un 404 opaque.
+    """
     if not code_rncp:
         return "https://www.francecompetences.fr/recherche_certificationprofessionnelle/"
     code = code_rncp.upper().replace(" ", "")
-    return f"https://www.francecompetences.fr/recherche/rncp/{code}/"
+    return f"https://www.francecompetences.fr/recherche_certificationprofessionnelle/?text={code}"
 
 
 def verifier(db: Session, intitule: str = "", code_rncp: str = "", etablissement: str = "") -> dict:
