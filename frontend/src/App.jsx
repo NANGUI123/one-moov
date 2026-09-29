@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { api, getToken, setToken } from "./api.js";
 import { C, URG, CLE_THEME } from "./styles.js";
+import { useLang } from "./i18n.jsx";
 
 // ── Thème (blanc + vert par défaut, bascule mode nuit) ─────────────
 //
@@ -46,11 +47,25 @@ function IconeLune() {
 }
 
 function ThemeToggle({ theme, onToggle }) {
-  const suivant = theme === "dark" ? "Passer en mode clair" : "Passer en mode nuit";
+  const { t } = useLang();
+  const suivant = theme === "dark" ? t("header.theme.jour") : t("header.theme.nuit");
   return (
     <button className="theme-toggle" onClick={onToggle}
       aria-label={suivant} title={suivant}>
       {theme === "dark" ? <IconeSoleil /> : <IconeLune />}
+    </button>
+  );
+}
+
+// Bouton bascule FR/EN, style discret aligné sur ThemeToggle.
+function LangToggle() {
+  const { lang, basculer, t } = useLang();
+  const suivante = lang === "fr" ? "EN" : "FR";
+  const aria = t("header.langue") + " : " + suivante;
+  return (
+    <button className="lang-toggle" onClick={basculer}
+      aria-label={aria} title={aria}>
+      {suivante}
     </button>
   );
 }
@@ -126,17 +141,19 @@ export default function App() {
 }
 
 function Header({ prenom, onHome, onLogout, onBack, theme, onToggleTheme }) {
+  const { t } = useLang();
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
         <div style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 20, color: C.teal, cursor: onHome ? "pointer" : "default" }}
           onClick={onHome || undefined}>One Moov</div>
-        {onHome && <span className="link" onClick={onHome} style={{ fontSize: 13 }}>← Tableau de bord</span>}
-        {onBack && <span className="link" onClick={onBack} style={{ fontSize: 13 }}>← Retour</span>}
+        {onHome && <span className="link" onClick={onHome} style={{ fontSize: 13 }}>{t("header.dashboard")}</span>}
+        {onBack && <span className="link" onClick={onBack} style={{ fontSize: 13 }}>{t("header.retour")}</span>}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <LangToggle />
         {onToggleTheme && <ThemeToggle theme={theme} onToggle={onToggleTheme} />}
-        {onLogout && <button className="btn-ghost btn-sm" onClick={onLogout}>Déconnexion</button>}
+        {onLogout && <button className="btn-ghost btn-sm" onClick={onLogout}>{t("header.deconnexion")}</button>}
       </div>
     </div>
   );
@@ -144,6 +161,7 @@ function Header({ prenom, onHome, onLogout, onBack, theme, onToggleTheme }) {
 
 // ── Écran d'accueil (avant l'inscription/connexion) ────────────────
 function Accueil({ onRegister, onLogin }) {
+  const { t } = useLang();
   return (
     <div className="accueil">
       <div className="accueil-marque">
@@ -154,21 +172,22 @@ function Accueil({ onRegister, onLogin }) {
           </svg>
         </div>
         <div className="accueil-marque-nom">one moov</div>
+        <div style={{ marginLeft: "auto" }}><LangToggle /></div>
       </div>
 
       <div className="accueil-contenu">
         <div className="accueil-corps">
-          <div className="accueil-eyebrow">Étudier en France, accompagné.</div>
-          <h1 className="accueil-titre">Bienvenue chez One Moov</h1>
+          <div className="accueil-eyebrow">{t("accueil.eyebrow")}</div>
+          <h1 className="accueil-titre">{t("accueil.titre")}</h1>
           <p className="accueil-sous">
-            Votre parcours vers les études en France,<br />guidé étape par étape.
+            {t("accueil.sous1")}<br />{t("accueil.sous2")}
           </p>
         </div>
 
         <div className="accueil-actions">
-          <button className="accueil-btn primaire" onClick={onRegister}>Créer un compte</button>
-          <button className="accueil-btn secondaire" onClick={onLogin}>Se connecter</button>
-          <div className="accueil-legende">Inscription gratuite · Conseiller Orientation inclus</div>
+          <button className="accueil-btn primaire" onClick={onRegister}>{t("accueil.creer")}</button>
+          <button className="accueil-btn secondaire" onClick={onLogin}>{t("accueil.connexion")}</button>
+          <div className="accueil-legende">{t("accueil.legende")}</div>
         </div>
       </div>
     </div>

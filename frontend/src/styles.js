@@ -329,6 +329,34 @@ export const GLOBAL_CSS = `
   .theme-toggle:active { transform: scale(0.94); }
   .theme-toggle svg { width: 16px; height: 16px; }
 
+  /* Bouton bascule de langue (FR / EN). Même géométrie que ThemeToggle,
+     étiquette texte à la place de l'icône. */
+  .lang-toggle {
+    background: transparent; border: 1px solid var(--line);
+    color: var(--muted); border-radius: 999px;
+    height: 34px; padding: 0 12px;
+    font-family: inherit; font-weight: 700; font-size: 12px;
+    letter-spacing: 0.06em;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: color .15s, border-color .15s, transform .15s;
+  }
+  .lang-toggle:hover { color: var(--teal); border-color: var(--teal); }
+  .lang-toggle:active { transform: scale(0.94); }
+  /* Sur le fond dégradé de l'accueil, on inverse les tokens : bord et
+     texte clairs pour rester lisibles. */
+  .accueil .lang-toggle {
+    color: rgba(255,255,255,.88);
+    border-color: rgba(255,255,255,.28);
+    background: rgba(255,255,255,.08);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .accueil .lang-toggle:hover {
+    color: #ffffff;
+    border-color: rgba(255,255,255,.55);
+    background: rgba(255,255,255,.16);
+  }
+
   @media (min-width: 620px) {
     .modal-ov { align-items: center; }
     .modal { border-radius: 16px; }
