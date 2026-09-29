@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { api, getToken, setToken } from "./api.js";
 import { C, URG, CLE_THEME } from "./styles.js";
+import { useLang } from "./i18n.jsx";
 
 // ── Thème (blanc + vert par défaut, bascule mode nuit) ─────────────
 //
@@ -46,11 +47,25 @@ function IconeLune() {
 }
 
 function ThemeToggle({ theme, onToggle }) {
-  const suivant = theme === "dark" ? "Passer en mode clair" : "Passer en mode nuit";
+  const { t } = useLang();
+  const suivant = theme === "dark" ? t("header.theme.jour") : t("header.theme.nuit");
   return (
     <button className="theme-toggle" onClick={onToggle}
       aria-label={suivant} title={suivant}>
       {theme === "dark" ? <IconeSoleil /> : <IconeLune />}
+    </button>
+  );
+}
+
+// Bouton bascule FR/EN, style discret aligné sur ThemeToggle.
+function LangToggle() {
+  const { lang, basculer, t } = useLang();
+  const suivante = lang === "fr" ? "EN" : "FR";
+  const aria = t("header.langue") + " : " + suivante;
+  return (
+    <button className="lang-toggle" onClick={basculer}
+      aria-label={aria} title={aria}>
+      {suivante}
     </button>
   );
 }
@@ -74,8 +89,8 @@ const fcfa = (n) => `${(n || 0).toLocaleString("fr-FR").replace(/ /g, " ")} FCF
 const PRIX_FCFA = 52477;
 
 export default function App() {
-  // welcome = écran d'accueil marketing ; auth = inscription/connexion ;
-  // le reste = écrans applicatifs après connexion.
+  // welcome = accueil marketing ; auth = inscription/connexion ; profil =
+  // écran gestion compte ; le reste = écrans applicatifs après connexion.
   const [view, setView] = useState("welcome");
   const [authMode, setAuthMode] = useState("register"); // "register" | "login"
   const [prenom, setPrenom] = useState("");
@@ -89,6 +104,7 @@ export default function App() {
 
   const logout = () => { setToken(null); setPiste(null); setRapport(null); setView("welcome"); };
   const goDash = () => { setPiste(null); setRapport(null); setView("dashboard"); };
+  const goProfil = () => setView("profil");
 
   const openPiste = async (id) => {
     const p = await api.getPiste(id);
@@ -108,11 +124,13 @@ export default function App() {
   return (
     <div className="wrap">
       <Header prenom={prenom} theme={theme} onToggleTheme={toggleTheme}
-        onHome={view !== "auth" && view !== "dashboard" ? goDash : null}
-        onBack={view === "auth" ? () => setView("welcome") : null}
+        onHome={view !== "auth" && view !== "dashboard" && view !== "profil" ? goDash : null}
+        onBack={view === "auth" ? () => setView("welcome") : (view === "profil" ? goDash : null)}
+        onProfil={view !== "auth" && view !== "profil" ? goProfil : null}
         onLogout={view !== "auth" ? logout : null} />
       {view === "auth" && <Auth initialMode={authMode}
         onAuth={(p) => { setPrenom(p); setView("dashboard"); }} />}
+      {view === "profil" && <Profil onDeconnexion={logout} onSuppression={logout} />}
       {view === "dashboard" && <Dashboard prenom={prenom}
         onNew={async () => { setPiste(await api.createPiste("Cameroun")); setRapport(null); setView("orientation"); }}
         onOpen={openPiste} />}
@@ -125,18 +143,29 @@ export default function App() {
   );
 }
 
-function Header({ prenom, onHome, onLogout, onBack, theme, onToggleTheme }) {
+function Header({ prenom, onHome, onLogout, onBack, onProfil, theme, onToggleTheme }) {
+  const { t } = useLang();
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 12 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
         <div style={{ fontFamily: "Poppins", fontWeight: 700, fontSize: 20, color: C.teal, cursor: onHome ? "pointer" : "default" }}
           onClick={onHome || undefined}>One Moov</div>
-        {onHome && <span className="link" onClick={onHome} style={{ fontSize: 13 }}>← Tableau de bord</span>}
-        {onBack && <span className="link" onClick={onBack} style={{ fontSize: 13 }}>← Retour</span>}
+        {onHome && <span className="link" onClick={onHome} style={{ fontSize: 13 }}>{t("header.dashboard")}</span>}
+        {onBack && <span className="link" onClick={onBack} style={{ fontSize: 13 }}>{t("header.retour")}</span>}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <LangToggle />
         {onToggleTheme && <ThemeToggle theme={theme} onToggle={onToggleTheme} />}
-        {onLogout && <button className="btn-ghost btn-sm" onClick={onLogout}>Déconnexion</button>}
+        {onProfil && (
+          <button className="theme-toggle" onClick={onProfil} aria-label="Mon profil" title="Mon profil">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+              strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </button>
+        )}
+        {onLogout && <button className="btn-ghost btn-sm" onClick={onLogout}>{t("header.deconnexion")}</button>}
       </div>
     </div>
   );
@@ -144,6 +173,7 @@ function Header({ prenom, onHome, onLogout, onBack, theme, onToggleTheme }) {
 
 // ── Écran d'accueil (avant l'inscription/connexion) ────────────────
 function Accueil({ onRegister, onLogin }) {
+  const { t } = useLang();
   return (
     <div className="accueil">
       <div className="accueil-marque">
@@ -154,21 +184,22 @@ function Accueil({ onRegister, onLogin }) {
           </svg>
         </div>
         <div className="accueil-marque-nom">one moov</div>
+        <div style={{ marginLeft: "auto" }}><LangToggle /></div>
       </div>
 
       <div className="accueil-contenu">
         <div className="accueil-corps">
-          <div className="accueil-eyebrow">Étudier en France, accompagné.</div>
-          <h1 className="accueil-titre">Bienvenue chez One Moov</h1>
+          <div className="accueil-eyebrow">{t("accueil.eyebrow")}</div>
+          <h1 className="accueil-titre">{t("accueil.titre")}</h1>
           <p className="accueil-sous">
-            Votre parcours vers les études en France,<br />guidé étape par étape.
+            {t("accueil.sous1")}<br />{t("accueil.sous2")}
           </p>
         </div>
 
         <div className="accueil-actions">
-          <button className="accueil-btn primaire" onClick={onRegister}>Créer un compte</button>
-          <button className="accueil-btn secondaire" onClick={onLogin}>Se connecter</button>
-          <div className="accueil-legende">Inscription gratuite · Conseiller Orientation inclus</div>
+          <button className="accueil-btn primaire" onClick={onRegister}>{t("accueil.creer")}</button>
+          <button className="accueil-btn secondaire" onClick={onLogin}>{t("accueil.connexion")}</button>
+          <div className="accueil-legende">{t("accueil.legende")}</div>
         </div>
       </div>
     </div>
@@ -447,23 +478,40 @@ function parseChoices(text) {
 
 function Orientation({ piste, prenom, onDone }) {
   const hi = prenom ? `Salut ${prenom} !` : "Bonjour !";
-  const GREET = [
+  // Deux modes exposés à l'étudiant : « guidée » suit un questionnaire
+  // fixe (sept étapes prévisibles, marche sans IA) ; « libre » ouvre une
+  // vraie conversation portée par le LLM. Le back accepte les deux via
+  // le paramètre mode ; on renvoie un premier message adapté à chacun.
+  const [modeConv, setModeConv] = useState("libre");
+  const GREET_LIBRE = [
     { role: "assistant", content: `${hi} Je suis Moov, ton conseiller d'orientation. Mon rôle : t'aider à y voir clair et à bâtir un projet d'études en France cohérent — le côté académique comme le côté professionnel.` },
     { role: "assistant", content: "On va discuter quelques minutes, comme un vrai entretien. Plus tu es précis, meilleures seront tes recommandations. Pour commencer : où en es-tu dans ton parcours, et qu'est-ce qui te donne envie d'étudier en France ?" },
   ];
-  const [msgs, setMsgs] = useState(GREET);
+  const GREET_GUIDEE = [
+    { role: "assistant", content: `${hi} Je suis Moov. On va passer sept questions courtes pour cerner ton projet — clique sur une réponse ou écris la tienne.` },
+  ];
+  const [msgs, setMsgs] = useState(GREET_LIBRE);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [pret, setPret] = useState(false);
   const endRef = useRef(null);
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
 
+  // Change de mode : reset la conversation. On ne mélange pas les
+  // greetings, ça déroute l'étudiant plus qu'autre chose.
+  const basculer = (m) => {
+    if (m === modeConv) return;
+    setModeConv(m);
+    setMsgs(m === "guidee" ? GREET_GUIDEE : GREET_LIBRE);
+    setPret(false); setInput("");
+  };
+
   async function send(content) {
     if (!content.trim() || busy) return;
     const next = [...msgs, { role: "user", content }];
     setMsgs(next); setInput(""); setBusy(true);
     try {
-      const r = await api.orientaChat(piste?.id, next);
+      const r = await api.orientaChat(piste?.id, next, modeConv);
       setMsgs([...next, { role: "assistant", content: r.content }]);
       if (r.pret) setPret(true);
     } catch (e) { setMsgs([...next, { role: "assistant", content: "Erreur : " + e.message }]); }
@@ -484,6 +532,19 @@ function Orientation({ piste, prenom, onDone }) {
   return (
     <div>
       <h2>Conseiller d'orientation</h2>
+      <div style={{ marginBottom: 12 }}>
+        <div className="seg" style={{ width: "100%", display: "flex" }}>
+          <button className={modeConv === "guidee" ? "on" : ""} style={{ flex: 1 }}
+            onClick={() => basculer("guidee")}>Guidée</button>
+          <button className={modeConv === "libre" ? "on" : ""} style={{ flex: 1 }}
+            onClick={() => basculer("libre")}>Libre</button>
+        </div>
+        <div className="muted" style={{ marginTop: 6 }}>
+          {modeConv === "guidee"
+            ? "Sept questions courtes, ordre fixe. Rapide et prévisible."
+            : "Vraie conversation avec Moov. Plus riche, quelques minutes de plus."}
+        </div>
+      </div>
       <div className="card" style={{ minHeight: 260 }}>
         {msgs.map((m, i) => {
           const t = m.content.replace(/\[CHOICES\][\s\S]*?\[\/CHOICES\]/, "").replace(/\[\[PRET\]\]/g, "").trim();
@@ -577,7 +638,89 @@ function Rapport({ piste, rapport, onNext }) {
           <div style={{ fontSize: 13, color: C.teal2, marginTop: 4 }}>Pourquoi : {f.explication}</div>
         </div>
       ))}
-      <button className="btn" onClick={onNext} style={{ width: "100%" }}>Passer au parcours de mobilité →</button>
+
+      {piste && <VerifierEcole piste={piste} />}
+
+      {onNext && <button className="btn" onClick={onNext} style={{ width: "100%" }}>Passer au parcours de mobilité →</button>}
+    </div>
+  );
+}
+
+// ── Vérification anticipée d'une école déjà en tête ─────────────────
+// Réutilise l'endpoint /api/rncp/verify (Perplexity + repli local) qui
+// est aussi utilisé dans Parcours pour la voie privée. Ici, en amont :
+// l'étudiant qui a déjà une école en vue teste sa reconnaissance avant
+// de générer sa feuille de route, ce qui évite de payer un parcours sur
+// une formation dont le titre RNCP a expiré.
+function VerifierEcole({ piste }) {
+  const [ouvert, setOuvert] = useState(false);
+  const [intitule, setIntitule] = useState("");
+  const [etab, setEtab] = useState("");
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState("");
+
+  const verifier = async () => {
+    if (!intitule.trim() && !code.trim()) {
+      setErr("Renseigne au moins l'intitulé de la formation ou le code RNCP."); return;
+    }
+    setBusy(true); setErr("");
+    try { setRes(await api.verifyRncp(piste.id, intitule, etab, code)); }
+    catch (e) { setErr(e.message); }
+    setBusy(false);
+  };
+
+  const entete = res && (
+    res.deconseille
+      ? { txt: "⚠ Titre non recommandé", col: C.danger, bg: URG.retard.bg }
+      : res.statut === "actif"
+      ? { txt: "✓ Titre reconnu — actif", col: C.teal, bg: URG.fait.bg }
+      : res.statut === "expire"
+      ? { txt: "⚠ Titre expiré", col: C.gold, bg: URG.bientot.bg }
+      : { txt: "ℹ À vérifier auprès de l'école", col: C.muted, bg: URG.avenir.bg }
+  );
+
+  return (
+    <div className="card">
+      <div style={{ fontWeight: 700, marginBottom: 4 }}>Tu as déjà une école en tête ?</div>
+      <div className="muted" style={{ marginBottom: ouvert ? 12 : 0 }}>
+        Vérifie que la formation est bien enregistrée au RNCP (titre reconnu par l'État) avant d'aller plus loin.
+        {!ouvert && " Aucun engagement — c'est gratuit et rapide."}
+      </div>
+      {!ouvert ? (
+        <button className="btn-ghost" onClick={() => setOuvert(true)}>Vérifier une école & sa formation</button>
+      ) : (
+        <>
+          <input className="inp" placeholder="Intitulé de la formation (ex. Master Data Science)"
+            value={intitule} onChange={(e) => setIntitule(e.target.value)} />
+          <input className="inp" placeholder="École / établissement (ex. EPITA)"
+            value={etab} onChange={(e) => setEtab(e.target.value)} />
+          <input className="inp" placeholder="Code RNCP si connu (ex. RNCP38363)"
+            value={code} onChange={(e) => setCode(e.target.value)} />
+          {err && <div style={{ color: C.danger, fontSize: 13, margin: "4px 0" }}>{err}</div>}
+          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+            <button className="btn" disabled={busy} onClick={verifier}>{busy ? "Vérification…" : "Vérifier maintenant"}</button>
+            <button className="btn-ghost" onClick={() => { setOuvert(false); setRes(null); setErr(""); }}>Fermer</button>
+          </div>
+
+          {res && res.statut && entete && (
+            <div style={{ marginTop: 12, padding: 12, borderRadius: 10, background: entete.bg, color: entete.col }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>{entete.txt}</div>
+              <div style={{ color: C.ink, fontSize: 13 }}>{res.message}</div>
+              {(res.intitule || res.code_rncp || res.niveau || res.date_echeance) && (
+                <div style={{ marginTop: 8, fontSize: 13, color: C.ink }}>
+                  {res.intitule && <div><b>Titre :</b> {res.intitule}</div>}
+                  {res.code_rncp && <div><b>Numéro :</b> {res.code_rncp}</div>}
+                  {res.niveau && <div><b>Niveau :</b> {res.niveau}</div>}
+                  {res.date_echeance && <div><b>Fin d'enregistrement :</b> {res.date_echeance}</div>}
+                </div>
+              )}
+              {res.source && <div className="muted" style={{ marginTop: 6 }}>{res.source}</div>}
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -628,10 +771,16 @@ function Parcours({ piste, onPaid }) {
         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <button className={voie === "public" ? "btn" : "btn-ghost"} onClick={() => choisir("public")}>Public</button>
           <button className={voie === "prive" ? "btn" : "btn-ghost"} onClick={() => choisir("prive")}>Privé</button>
+          <button className={voie === "mixte" ? "btn" : "btn-ghost"} onClick={() => choisir("mixte")}>Les deux</button>
         </div>
+        {voie === "mixte" && (
+          <div className="muted" style={{ marginTop: 8 }}>
+            Public et privé menés en parallèle : plus de chances d'admission, la vérification du titre RNCP reste indispensable côté privé.
+          </div>
+        )}
       </div>
 
-      {voie === "prive" && (
+      {(voie === "prive" || voie === "mixte") && (
         <div className="card">
           <div style={{ fontWeight: 700, marginBottom: 6 }}>Vérification du titre RNCP</div>
           <input className="inp" placeholder="Intitulé de la formation" value={intitule} onChange={(e) => setIntitule(e.target.value)} />
@@ -715,6 +864,8 @@ function Roadmap({ piste, prenom }) {
   const [mode, setMode] = useState("arbre");   // arbre | liste (feature 5)
   const [step, setStep] = useState(null);
   const [aide, setAide] = useState(null);      // "entretien" | "contestation"
+  // Onglets de la vue projet payé : feuille de route (défaut) | assistant | rapport.
+  const [onglet, setOnglet] = useState("feuille");
 
   useEffect(() => { if (!rm) api.genRoadmap(piste.id).then(setRm).catch(() => {}); }, []);
   if (!rm) return <p className="muted">Chargement…</p>;
@@ -727,8 +878,33 @@ function Roadmap({ piste, prenom }) {
 
   return (
     <div>
-      <h2>Ma feuille de route</h2>
+      <h2>Mon projet · {piste?.titre || piste?.pays}</h2>
 
+      <div className="seg" style={{ marginBottom: 14, display: "flex", width: "100%", flexWrap: "wrap" }}>
+        <button className={onglet === "feuille" ? "on" : ""} style={{ flex: "1 1 130px" }}
+          onClick={() => setOnglet("feuille")}>Feuille de route</button>
+        <button className={onglet === "assistant" ? "on" : ""} style={{ flex: "1 1 130px" }}
+          onClick={() => setOnglet("assistant")}>Assistant</button>
+        <button className={onglet === "procedures" ? "on" : ""} style={{ flex: "1 1 130px" }}
+          onClick={() => setOnglet("procedures")}>Procédures</button>
+        <button className={onglet === "rapport" ? "on" : ""} style={{ flex: "1 1 130px" }}
+          onClick={() => setOnglet("rapport")}>Mon rapport</button>
+      </div>
+
+      {onglet === "rapport" && (
+        <Rapport piste={piste} rapport={null} onNext={null} />
+      )}
+
+      {onglet === "assistant" && (
+        <ChatbotPage piste={piste} etapes={all} />
+      )}
+
+      {onglet === "procedures" && (
+        <ProceduresPage piste={piste} />
+      )}
+
+      {onglet === "feuille" && (
+      <>
       <div className="card">
         <div style={{ display: "flex", gap: 6 }}>
           <div className="stat"><b>{rm.progression_pct}%</b><span className="muted">avancement</span></div>
@@ -750,7 +926,7 @@ function Roadmap({ piste, prenom }) {
         <div style={{ fontWeight: 700, marginBottom: 6 }}>Aides IA du parcours</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           <button className="btn-ghost btn-sm" onClick={() => setAide("entretien")}>🎤 Simuler l'entretien Campus France</button>
-          <button className="btn-ghost btn-sm" onClick={() => setAide("contestation")}>📄 Contester un refus</button>
+          <button className="btn-ghost btn-sm" onClick={() => setOnglet("procedures")}>📄 Contester un refus</button>
         </div>
       </div>
 
@@ -771,7 +947,69 @@ function Roadmap({ piste, prenom }) {
       {step && <StepModal piste={piste} etape={all.find((e) => e.id === step)} onToggle={toggle}
         onClose={() => setStep(null)} onChanged={(t) => setRm(t)} />}
       {aide === "entretien" && <EntretienModal piste={piste} prenom={prenom} onClose={() => setAide(null)} />}
-      {aide === "contestation" && <ContestationModal piste={piste} onClose={() => setAide(null)} />}
+      </>
+      )}
+    </div>
+  );
+}
+
+// ── Onglet Assistant : chatbot en plein page (pas en modal) ─────────
+function ChatbotPage({ piste, etapes }) {
+  const [etapeId, setEtapeId] = useState("");
+  const [msgs, setMsgs] = useState([{
+    role: "assistant",
+    content: "Salut ! Choisis une étape ou écris ta question — je m'appuie sur les procédures officielles et je cite mes sources.",
+  }]);
+  const [input, setInput] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [sources, setSources] = useState([]);
+  const endRef = useRef(null);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
+
+  async function send(txt) {
+    if (!txt.trim() || busy) return;
+    const next = [...msgs, { role: "user", content: txt }];
+    setMsgs(next); setInput(""); setBusy(true);
+    try {
+      const r = await api.chatbot(piste.id, etapeId || "", next);
+      setMsgs([...next, { role: "assistant", content: r.content }]);
+      setSources(r.sources || []);
+    } catch (e) {
+      setMsgs([...next, { role: "assistant", content: "Erreur : " + e.message }]);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div>
+      <div className="card card-soft" style={{ marginBottom: 10 }}>
+        <div className="muted" style={{ marginBottom: 6 }}>Contexte (facultatif) — sur quelle étape ?</div>
+        <select className="inp" value={etapeId} onChange={(e) => setEtapeId(e.target.value)}>
+          <option value="">Toutes les étapes</option>
+          {(etapes || []).map((e) => <option key={e.id} value={e.id}>{e.label}</option>)}
+        </select>
+      </div>
+      <div className="card" style={{ minHeight: 260 }}>
+        {msgs.map((m, i) => <Bubble key={i} role={m.role} text={m.content} />)}
+        {busy && <div className="muted">…</div>}
+        <div ref={endRef} />
+      </div>
+      {sources.length > 0 && (
+        <div className="card card-soft" style={{ marginTop: 0 }}>
+          <div className="muted" style={{ marginBottom: 6 }}>Sources citées</div>
+          {sources.map((s, i) => (
+            <div key={i} style={{ fontSize: 13, margin: "4px 0" }}>
+              <b>{s.titre}</b> — {s.organisme}
+              {s.url && <> · <a className="link" href={s.url} target="_blank" rel="noreferrer">voir</a></>}
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <input className="inp" placeholder="Pose ta question…" value={input}
+          onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send(input)} />
+        <button className="btn" disabled={busy} onClick={() => send(input)}>Envoyer</button>
+      </div>
     </div>
   );
 }
@@ -940,6 +1178,78 @@ function EntretienModal({ piste, prenom, onClose }) {
   );
 }
 
+// ── Onglet Procédures : aide au recours (contestation), en plein-page ─
+// Anciennement une modal accessible depuis « Aides IA ». Maintenant un
+// vrai onglet du projet, plus visible et plus utilisable — l'étudiant
+// peut y revenir et lire le résultat sans se fermer par accident.
+function ProceduresPage({ piste }) {
+  const [type, setType] = useState("admission");
+  const [formation, setFormation] = useState(""); const [etab, setEtab] = useState("");
+  const [motif, setMotif] = useState(""); const [args, setArgs] = useState("");
+  const [res, setRes] = useState(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  async function generer() {
+    setBusy(true); setErr("");
+    try { setRes(await api.contestation(piste.id, { type_refus: type, formation, etablissement: etab, motif, arguments: args })); }
+    catch (e) { setErr(e.message); }
+    setBusy(false);
+  }
+  const copier = async () => {
+    try { await navigator.clipboard.writeText(res.lettre); setCopied(true); setTimeout(() => setCopied(false), 1500); }
+    catch { /* clipboard bloqué : on laisse l'utilisateur copier manuellement. */ }
+  };
+
+  return (
+    <div>
+      <div className="card card-soft" style={{ marginBottom: 12 }}>
+        <div style={{ fontWeight: 700, marginBottom: 4 }}>Procédures & recours</div>
+        <div className="muted">
+          Un refus n'est pas la fin du parcours. Décris ta situation, Moov génère les voies de recours réalistes,
+          des conseils concrets et un brouillon de courrier prêt à personnaliser.
+        </div>
+      </div>
+
+      {!res ? (
+        <div className="card">
+          <div className="muted" style={{ marginBottom: 4 }}>Type de refus</div>
+          <div className="seg" style={{ marginBottom: 10 }}>
+            <button className={type === "admission" ? "on" : ""} onClick={() => setType("admission")}>Admission</button>
+            <button className={type === "visa" ? "on" : ""} onClick={() => setType("visa")}>Visa</button>
+          </div>
+          <input className="inp" placeholder="Formation concernée" value={formation} onChange={(e) => setFormation(e.target.value)} />
+          <input className="inp" placeholder="Établissement / consulat" value={etab} onChange={(e) => setEtab(e.target.value)} />
+          <input className="inp" placeholder="Motif du refus (si connu)" value={motif} onChange={(e) => setMotif(e.target.value)} />
+          <textarea className="ta" placeholder="Les éléments que vous voulez faire valoir (nouveaux résultats, motivation, corrections…)"
+            value={args} onChange={(e) => setArgs(e.target.value)} />
+          {err && <div style={{ color: C.danger, fontSize: 13, margin: "6px 0" }}>{err}</div>}
+          <button className="btn" disabled={busy} onClick={generer} style={{ width: "100%", marginTop: 6 }}>
+            {busy ? "Génération…" : "Générer mon aide au recours"}
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="card">
+            <div style={{ fontWeight: 700, color: C.teal, marginBottom: 4 }}>Voies possibles</div>
+            {res.voies.map((v, i) => <div key={i} style={{ fontSize: 14, margin: "3px 0" }}>• {v}</div>)}
+            <div style={{ fontWeight: 700, color: C.gold, margin: "10px 0 4px" }}>Conseils</div>
+            {res.conseils.map((v, i) => <div key={i} style={{ fontSize: 14, margin: "3px 0" }}>→ {v}</div>)}
+          </div>
+          <div className="card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <div style={{ fontWeight: 700 }}>Brouillon de courrier</div>
+              <button className="btn-ghost btn-sm" onClick={copier}>{copied ? "Copié ✓" : "Copier"}</button>
+            </div>
+            <textarea className="ta" style={{ minHeight: 260 }} value={res.lettre} onChange={(e) => setRes({ ...res, lettre: e.target.value })} />
+            {res.avertissement && <div className="muted" style={{ marginTop: 6 }}>⚠︎ {res.avertissement}</div>}
+          </div>
+          <button className="btn-ghost" onClick={() => setRes(null)}>← Modifier ma situation</button>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── Aide à la contestation d'un refus (feature 11) ─────────────────
 function ContestationModal({ piste, onClose }) {
   const [type, setType] = useState("admission");
@@ -993,6 +1303,129 @@ function ContestationModal({ piste, onClose }) {
             <textarea className="ta" style={{ minHeight: 220 }} value={res.lettre} onChange={(e) => setRes({ ...res, lettre: e.target.value })} />
             {res.avertissement && <div className="muted" style={{ marginTop: 6 }}>⚠︎ {res.avertissement}</div>}
             <button className="btn-ghost" onClick={() => setRes(null)} style={{ marginTop: 10 }}>← Modifier ma situation</button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Écran Profil ────────────────────────────────────────────────────
+// Prix du parcours, transparence sur ce qui est conservé ou non, et
+// deux boutons irréversibles côté données : déconnexion (efface la
+// session locale) et suppression du compte (efface tout sur le serveur).
+function Profil({ onDeconnexion, onSuppression }) {
+  const [me, setMe] = useState(null);
+  const [err, setErr] = useState("");
+  const [confirmer, setConfirmer] = useState(false);
+  const [pw, setPw] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => { api.me().then(setMe).catch(() => {}); }, []);
+
+  const supprimer = async () => {
+    setErr(""); setBusy(true);
+    try {
+      await api.supprimerCompte(pw);
+      setToken(null);
+      onSuppression?.();
+    } catch (e) { setErr(e.message); setBusy(false); }
+  };
+
+  const fmtFcfa = (n) => `${(n || 0).toLocaleString("fr-FR")} FCFA`;
+
+  return (
+    <div>
+      <h2 style={{ marginTop: 0 }}>Mon profil</h2>
+
+      <div className="card">
+        <div style={{ fontWeight: 700, marginBottom: 6 }}>Mon compte</div>
+        <div className="muted" style={{ fontSize: 13 }}>Prénom</div>
+        <div style={{ marginBottom: 8 }}>{me?.prenom || "—"}</div>
+        <div className="muted" style={{ fontSize: 13 }}>E-mail</div>
+        <div style={{ marginBottom: 8 }}>{me?.email || "—"}
+          {me?.email_verifie ? <span className="chip" style={{ marginLeft: 8 }}>vérifié ✓</span>
+            : <span className="chip" style={{ marginLeft: 8, color: C.gold }}>non vérifié</span>}
+        </div>
+        <div className="muted" style={{ fontSize: 13 }}>Pays de résidence</div>
+        <div style={{ marginBottom: 8 }}>{me?.pays_residence || "—"}</div>
+        <div className="muted" style={{ fontSize: 13 }}>Compte créé</div>
+        <div>{me?.cree_le ? new Date(me.cree_le).toLocaleDateString("fr-FR") : "—"}</div>
+      </div>
+
+      <div className="card">
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>Tarifs</div>
+        <div className="muted" style={{ marginBottom: 8 }}>
+          L'orientation (rapport + 10 pistes vérifiées + conseiller) est <b>gratuite</b>. Le parcours de mobilité (feuille de route, chatbot, entretien blanc, aide à la contestation) est payant, une seule fois par projet.
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--line)" }}>
+          <div>Orientation & rapport</div>
+          <div style={{ fontWeight: 700, color: C.teal }}>Gratuit</div>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: "1px solid var(--line)" }}>
+          <div>Parcours de mobilité complet</div>
+          <div style={{ fontWeight: 700 }}>{fmtFcfa(PRIX_FCFA)} <span className="muted" style={{ fontWeight: 400 }}>· ~80 €</span></div>
+        </div>
+        <div className="muted" style={{ marginTop: 8, fontSize: 12 }}>
+          Paiement par mobile money (MTN, Orange, Airtel, Wave selon ton pays). Aucune donnée bancaire ne transite par One Moov.
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>Tes données</div>
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontWeight: 600, color: C.teal, marginBottom: 4 }}>Ce qui est conservé</div>
+          <ul style={{ paddingLeft: 20, margin: 0, fontSize: 14 }}>
+            <li>Ton prénom, ton e-mail, ton pays de résidence</li>
+            <li>Une empreinte bcrypt de ton mot de passe (jamais le mot de passe en clair)</li>
+            <li>Tes projets d'études et tes feuilles de route (pour les retrouver d'un appareil à l'autre)</li>
+            <li>Les paiements confirmés (référence, montant, date — jamais tes coordonnées bancaires)</li>
+          </ul>
+        </div>
+        <div>
+          <div style={{ fontWeight: 600, color: C.gold, marginBottom: 4 }}>Ce qui n'est jamais conservé</div>
+          <ul style={{ paddingLeft: 20, margin: 0, fontSize: 14 }}>
+            <li>Tes conversations avec le conseiller Moov et avec l'assistant</li>
+            <li>Tes réponses libres à l'entretien Campus France blanc</li>
+            <li>Tes coordonnées bancaires (elles restent chez l'opérateur mobile money)</li>
+            <li>Aucune donnée envoyée à des tiers en dehors des fournisseurs techniques nécessaires (LLM, paiement, e-mail)</li>
+          </ul>
+        </div>
+      </div>
+
+      {me && (
+        <div className="card card-soft" style={{ fontSize: 13 }}>
+          <div className="muted">Ton usage à ce jour</div>
+          <div>{me.nb_pistes ?? 0} projet(s) · {me.nb_paiements ?? 0} paiement(s) · {me.nb_appels_ia ?? 0} appel(s) à l'IA</div>
+        </div>
+      )}
+
+      <div className="card">
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>Session</div>
+        <p className="muted" style={{ marginTop: 0 }}>Ferme cette session sur cet appareil. Tes projets et ton compte restent intacts, tu pourras te reconnecter n'importe quand.</p>
+        <button className="btn-ghost" onClick={onDeconnexion}>Se déconnecter</button>
+      </div>
+
+      <div className="card" style={{ borderColor: "var(--danger)" }}>
+        <div style={{ fontWeight: 700, marginBottom: 8, color: C.danger }}>Zone irréversible</div>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Supprimer ton compte efface définitivement <b>tout</b> : tes projets, tes feuilles de route, tes paiements
+          enregistrés, ton historique. Aucune corbeille, aucune récupération possible. La confirmation par mot de passe
+          protège contre un accès frauduleux à ta session.
+        </p>
+        {!confirmer ? (
+          <button className="btn-danger" onClick={() => setConfirmer(true)}>Supprimer mon compte</button>
+        ) : (
+          <>
+            <input className="inp" type="password" placeholder="Confirme ton mot de passe"
+              value={pw} onChange={(e) => setPw(e.target.value)} />
+            {err && <div style={{ color: C.danger, fontSize: 13, margin: "6px 0" }}>{err}</div>}
+            <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+              <button className="btn-danger" disabled={busy || !pw} onClick={supprimer}>
+                {busy ? "Suppression…" : "Oui, supprimer définitivement"}
+              </button>
+              <button className="btn-ghost" onClick={() => { setConfirmer(false); setPw(""); setErr(""); }}>Annuler</button>
+            </div>
           </>
         )}
       </div>

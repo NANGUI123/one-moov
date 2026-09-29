@@ -49,6 +49,11 @@ def chat(body: ChatIn, db: Session = Depends(get_db),
          user: User | None = Depends(get_current_user_optional)):
     msgs = [{"role": m.role, "content": m.content} for m in body.messages]
     llm = get_llm()
+    # `mode` explicite depuis le front. Vide → bascule automatique
+    # (libre si LLM dispo, guidée sinon).
+    mode = (body.mode or "").lower().strip()
+    if mode == "guidee" or (mode != "libre" and not llm.available):
+        return _mode_guide(msgs)
     if not llm.available:
         return _mode_guide(msgs)
 

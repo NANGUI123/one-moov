@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import { GLOBAL_CSS, CLE_THEME } from "./styles.js";
+import { LangProvider } from "./i18n.jsx";
 
 // Injecte les CSS globaux (palette + composants) avant le premier rendu.
 const style = document.createElement("style");
@@ -22,5 +23,5 @@ fonts.href = "https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&fami
 document.head.appendChild(fonts);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode><App /></React.StrictMode>
+  <React.StrictMode><LangProvider><App /></LangProvider></React.StrictMode>
 );

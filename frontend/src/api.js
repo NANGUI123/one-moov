@@ -30,6 +30,7 @@ export const api = {
   resendVerif: (email) => req("POST", "/auth/resend", { email }),
   forgot: (email) => req("POST", "/auth/forgot", { email }),
   me: () => req("GET", "/auth/me"),
+  supprimerCompte: (mot_de_passe) => req("DELETE", "/auth/me", { mot_de_passe }),
   paysDisponibles: () => req("GET", "/auth/pays"),
 
   // Pistes / tableau de bord (feature 14)
@@ -38,7 +39,7 @@ export const api = {
   getPiste: (id) => req("GET", `/pistes/${id}`),
 
   // Orientation (features 1, 2)
-  orientaChat: (piste_id, messages) => req("POST", "/orientation/chat", { piste_id, messages }),
+  orientaChat: (piste_id, messages, mode = "libre") => req("POST", "/orientation/chat", { piste_id, messages, mode }),
   formations: (piste_id, messages, profil = null) => req("POST", "/orientation/formations", { piste_id, messages, profil }),
   rapport: (piste_id, messages, profil = null) => req("POST", "/orientation/rapport", { piste_id, messages, profil }),
 

@@ -10,6 +10,7 @@ routers/auth.py — Inscription / connexion sécurisées.
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from app.db import get_db
 from app.deps import get_current_user
@@ -19,6 +20,7 @@ from app.schemas import RegisterIn, LoginIn, EmailIn, TokenOut, PAYS_ACCEPTES
 from app.security import (hash_password, verify_password, create_token,
                          valider_mot_de_passe, nouveau_jeton)
 from app.services import mailer
+from app.services.urls import base_publique as _base_publique
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 settings = get_settings()
@@ -52,21 +54,6 @@ def _consommer_jeton(db: Session, token: str, kind: str) -> User | None:
     row.used = True
     db.commit()
     return db.get(User, row.user_id)
-
-
-def _base_publique() -> str:
-    """Renvoie PUBLIC_BASE_URL, en s'assurant qu'elle a bien un schéma.
-
-    Sur Render, `fromService.hostport` fournit le hostname seul
-    (ex. `one-moov-api.onrender.com`). Un préfixe `https://` est ajouté
-    quand il manque, et le slash final est retiré.
-    """
-    b = (settings.PUBLIC_BASE_URL or "").strip().rstrip("/")
-    if not b:
-        return "http://localhost:8000"
-    if not b.startswith(("http://", "https://")):
-        b = "https://" + b
-    return b
 
 
 def _envoyer(db: Session, user: User, kind: str) -> dict:
@@ -202,13 +189,49 @@ async def reset_confirm(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/me")
 def me(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.models import Payment, TokenUsage
     pistes = db.query(Piste).filter(Piste.user_id == user.id).all()
+    nb_payments = db.query(Payment).filter(Payment.user_id == user.id).count()
+    nb_llm_calls = db.query(TokenUsage).filter(TokenUsage.user_id == user.id).count()
     return {
         "id": user.id, "email": user.email, "prenom": user.prenom,
         "pays_residence": user.pays_residence or "",
         "email_verifie": _est_verifie(db, user.id),
+        "cree_le": user.created_at.isoformat() if user.created_at else None,
+        "nb_pistes": len(pistes),
+        "nb_paiements": nb_payments,
+        "nb_appels_ia": nb_llm_calls,
         "pistes": [{"id": p.id, "pays": p.pays, "voie": p.voie, "paid": p.paid} for p in pistes],
     }
+
+
+class SuppressionCompte(BaseModel):
+    """Ré-authentification par mot de passe : la suppression est irréversible."""
+    mot_de_passe: str
+
+
+@router.delete("/me")
+def supprimer_compte(body: SuppressionCompte, db: Session = Depends(get_db),
+                     user: User = Depends(get_current_user)):
+    """Efface définitivement le compte et tout ce qui y est rattaché.
+
+    Pas de corbeille, pas d'effacement logique. On vérifie le mot de
+    passe pour ne pas laisser un jeton volé effacer un compte, puis on
+    supprime dans un ordre qui respecte les contraintes de clés
+    étrangères (Postgres et SQLite avec pragma foreign_keys=on).
+    """
+    from app.models import Payment, TokenUsage
+    if not verify_password(body.mot_de_passe, user.password_hash):
+        raise HTTPException(401, "Mot de passe incorrect")
+    uid = user.id
+    db.query(TokenUsage).filter(TokenUsage.user_id == uid).delete(synchronize_session=False)
+    db.query(Payment).filter(Payment.user_id == uid).delete(synchronize_session=False)
+    db.query(EmailVerification).filter(EmailVerification.user_id == uid).delete(synchronize_session=False)
+    db.query(AuthToken).filter(AuthToken.user_id == uid).delete(synchronize_session=False)
+    db.query(Piste).filter(Piste.user_id == uid).delete(synchronize_session=False)
+    db.delete(user)
+    db.commit()
+    return {"ok": True, "message": "Votre compte et toutes ses données ont été supprimés."}
 
 
 @router.get("/pays")
