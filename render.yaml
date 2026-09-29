@@ -76,12 +76,16 @@ services:
         sync: false
       - key: CINETPAY_MODE
         value: SANDBOX
-      # URL publique de l'API (calculée par Render sur le service lui-même).
+      # URL publique de l'API. Render expose deux propriétés :
+      #   - `host`     : hostname public (ex. one-moov-api.onrender.com)
+      #   - `hostport` : hostname:port INTERNE (ex. one-moov-api:10000)
+      # C'est `host` qu'il faut prendre pour construire les liens envoyés
+      # aux étudiants — le back préfixe `https://` automatiquement.
       - key: PUBLIC_BASE_URL
         fromService:
           name: one-moov-api
           type: web
-          property: hostport
+          property: host
 
       # RNCP LLM connecté au web (Perplexity par défaut).
       - key: RNCP_LLM_API_KEY
