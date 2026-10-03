@@ -727,11 +727,22 @@ function Rapport({ piste, rapport, onNext }) {
           <RncpCarte formation={f} piste={piste} />
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 8, flexWrap: "wrap" }}>
-            {f.url ? (
-              <a className="link" href={f.url} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
-                {t("rapport.rncp.site_etab")}
+            {/* Lien "Site de l'établissement" : on NE confie PAS une URL
+                statique à l'affichage — trop d'écoles ont refondu leur site
+                ou protègent la page par cookies/WAF, ce qui amenait des
+                400/404 au clic. On construit à la volée une recherche
+                DuckDuckGo (!ducky = Je tente ma chance) sur École + Ville +
+                Intitulé formation : l'étudiant atterrit directement sur la
+                vraie page de la formation, sur le site officiel. Fallback
+                sur la page de résultats si !ducky n'est pas disponible. */}
+            {(f.etablissement || f.intitule) && (
+              <a className="link" style={{ fontSize: 13 }} target="_blank" rel="noreferrer"
+                href={`https://duckduckgo.com/?q=${encodeURIComponent(
+                  `!ducky ${f.etablissement || ""} ${f.ville || ""} ${f.intitule || ""}`.trim()
+                )}`}>
+                {t("rapport.rncp.site_etab")} ↗
               </a>
-            ) : <span />}
+            )}
             <div className="muted" style={{ fontSize: 12 }}>
               {f.explication ? `${t("rapport.pourquoi")} : ${f.explication}` : ""}
             </div>
