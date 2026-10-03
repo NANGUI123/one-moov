@@ -1,0 +1,8 @@
+.env
+*.db
+*.db-journal
+__pycache__/
+*.pyc
+.pytest_cache/
+_rag_v1_source/
+tests/
