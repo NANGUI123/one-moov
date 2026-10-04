@@ -99,28 +99,6 @@ def formations(body: FormationsIn, db: Session = Depends(get_db),
     if not resultats:
         raise HTTPException(503, "Référentiel de formations vide — lancez l'ingestion")
 
-    # Couverture : si rien ne relève du domaine demandé, on le dit au lieu de
-    # présenter dix formations d'un autre champ comme si elles convenaient.
-    # C'est le défaut qu'un étudiant en architecture rencontrait : il
-    # recevait de l'informatique, sans un mot.
-    dans_le_domaine = [r for r in resultats
-                       if r.get("correspondance") in ("domaine", "proche")]
-    couverture = {
-        "domaine_demande": (profil or {}).get("domaine") or "",
-        "couvert": bool(dans_le_domaine) or not (profil or {}).get("domaine"),
-        "pistes_du_domaine": len(dans_le_domaine),
-        "domaines_disponibles": domaines_couverts(db),
-    }
-    if not couverture["couvert"]:
-        couverture["message"] = (
-            f"Nous n'avons pas encore de formation en "
-            f"« {couverture['domaine_demande']} » dans notre base. Les pistes "
-            f"ci-dessous ne relèvent pas de ce domaine : elles sont "
-            f"proposées à titre indicatif, sur votre niveau et votre budget. "
-            f"Si vous avez déjà une école en tête, vous pouvez faire vérifier "
-            f"son titre RNCP."
-        )
-
     if body.piste_id and user:
         p = db.get(Piste, body.piste_id)
         if p and p.user_id == user.id:
@@ -128,7 +106,7 @@ def formations(body: FormationsIn, db: Session = Depends(get_db),
             p.formations = resultats
             db.commit()
     return {"formations": resultats, "total": len(resultats), "profil": profil,
-            "couverture": couverture,
+            "couverture": _couverture(db, profil, resultats),
             "source": "base vérifiée (scoring déterministe)"}
 
 
@@ -158,7 +136,31 @@ def rapport(body: FormationsIn, db: Session = Depends(get_db),
 
     return {"profil": profil, "synthese": synthese, "formations": resultats,
             "total": len(resultats), "transparence": TRANSPARENCE,
+            "couverture": _couverture(db, profil, resultats),
             "source": "base vérifiée (scoring déterministe)", "mode": mode}
+
+
+def _couverture(db: Session, profil: dict | None, resultats: list[dict]) -> dict:
+    """Dit si le domaine demandé est couvert, plutôt que de présenter dix
+    formations d'un autre champ comme si elles convenaient."""
+    domaine = (profil or {}).get("domaine") or ""
+    dans_le_domaine = [r for r in resultats
+                       if r.get("correspondance") in ("domaine", "proche")]
+    couverture = {
+        "domaine_demande": domaine,
+        "couvert": bool(dans_le_domaine) or not domaine,
+        "pistes_du_domaine": len(dans_le_domaine),
+        "domaines_disponibles": domaines_couverts(db),
+    }
+    if not couverture["couvert"]:
+        couverture["message"] = (
+            f"Nous n'avons pas encore de formation en « {domaine} » dans notre "
+            f"base. Les pistes ci-dessous ne relèvent pas de ce domaine : elles "
+            f"sont proposées à titre indicatif, sur votre niveau et votre "
+            f"budget. Si vous avez déjà une école en tête, vous pouvez faire "
+            f"vérifier son titre RNCP."
+        )
+    return couverture
 
 
 def _synthese(db: Session, profil: dict, user: User | None) -> tuple[dict, str]:

@@ -5,6 +5,7 @@ Cœur de la fiabilité : les formations viennent de la BASE (table `formations`)
 sont filtrées et classées par des règles explicables. Le LLM ne les invente pas
 et ne les reclasse pas ; il ne fait que présenter le résultat.
 """
+import re
 import unicodedata
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -62,6 +63,7 @@ def top_formations(db: Session, profil: dict, k: int = 10) -> list[dict]:
         "developpement": "informatique", "cyber": "informatique", "data": "informatique",
         "business": "commerce gestion", "gestion": "commerce gestion", "finance": "commerce gestion",
         "marketing": "commerce gestion", "management": "commerce gestion",
+        "commercial": "commerce gestion", "sciences sociales": "social education",
         "juridique": "droit sciences po", "science politique": "droit sciences po",
         "medecine": "sante medecine", "sante": "sante medecine", "biologie": "sciences ingenierie",
         "psychologie": "lettres humaines", "sciences humaines": "lettres humaines",
@@ -79,9 +81,12 @@ def top_formations(db: Session, profil: dict, k: int = 10) -> list[dict]:
         "restauration": "tourisme hotellerie",
         "agronomie": "agriculture agronomie", "agriculture": "agriculture agronomie",
     }
-    for k_al, v_al in ALIAS.items():
-        if k_al in domaine:
-            domaine = v_al
+    # Mots entiers, alias les plus longs d'abord : « ia » ne doit pas attraper
+    # « social » ni « médias », et « développement durable » doit l'emporter
+    # sur « développement ».
+    for k_al in sorted(ALIAS, key=len, reverse=True):
+        if re.search(rf"\b{re.escape(k_al)}\b", domaine):
+            domaine = ALIAS[k_al]
             break
 
     rows = db.query(Formation).all()
