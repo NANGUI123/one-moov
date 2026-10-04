@@ -1,0 +1,10 @@
+# Front One Moov : build Vite, puis service par Caddy (HTTPS + proxy /api).
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM caddy:2-alpine
+COPY --from=build /app/dist /srv

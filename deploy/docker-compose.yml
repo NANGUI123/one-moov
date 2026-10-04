@@ -1,5 +1,5 @@
-# API One Moov sur un VPS : PostgreSQL + API + Caddy (HTTPS automatique).
-# Lancé par deploy/install.sh. Seul Caddy est exposé (ports 80/443).
+# One Moov sur un VPS : PostgreSQL + API + web (Caddy : front, proxy /api, HTTPS auto).
+# Lancé par deploy/install.sh. Seul le service web est exposé (ports 80/443).
 
 x-logging: &logging
   driver: json-file
@@ -30,7 +30,7 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql://onemoov:${POSTGRES_PASSWORD}@db:5432/onemoov
-      PUBLIC_BASE_URL: https://${API_DOMAIN:?API_DOMAIN manquant dans deploy/.env}
+      PUBLIC_BASE_URL: https://${DOMAIN:?DOMAIN manquant dans deploy/.env}
     depends_on:
       db:
         condition: service_healthy
@@ -42,15 +42,15 @@ services:
       retries: 3
     logging: *logging
 
-  caddy:
-    image: caddy:2-alpine
+  web:
+    build: ../frontend
     restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
       - "443:443/udp"
     environment:
-      API_DOMAIN: ${API_DOMAIN}
+      DOMAIN: ${DOMAIN}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

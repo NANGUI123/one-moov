@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installe ou met à jour l'API One Moov sur un VPS Ubuntu/Debian.
+# Installe ou met à jour One Moov (site + API) sur un VPS Ubuntu/Debian.
 #   1re fois  : curl -fsSL https://raw.githubusercontent.com/NANGUI123/one-moov/claude/app-architecture-rag-integration-1d37vb/deploy/install.sh | sudo bash
 #   Mise à jour : sudo bash /opt/one-moov/deploy/install.sh
 set -euo pipefail
@@ -44,15 +44,22 @@ if [ ! -f .env ]; then
   exit 0
 fi
 
-echo "► Construction et démarrage (2 à 4 min la première fois)…"
+# Un .env créé par une version précédente (API seule sur api.onemoov.org)
+# n'a pas de DOMAIN : on l'ajoute pour que le site entier soit servi.
+if ! grep -q '^DOMAIN=' .env; then
+  echo "DOMAIN=onemoov.org" >> .env
+  echo "► DOMAIN=onemoov.org ajouté à deploy/.env"
+fi
+
+echo "► Construction et démarrage (3 à 5 min la première fois)…"
 docker compose up -d --build --remove-orphans
 docker image prune -f >/dev/null
 
-DOMAINE="$(grep -E '^API_DOMAIN=' .env | cut -d= -f2)"
+DOMAINE="$(grep -E '^DOMAIN=' .env | cut -d= -f2)"
 echo "► Attente de l'API…"
 for _ in $(seq 1 60); do
   if docker compose exec -T api python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)" >/dev/null 2>&1; then
-    echo "✓ API en ligne. Vérifie depuis ton navigateur : https://$DOMAINE/health"
+    echo "✓ One Moov est en ligne : https://$DOMAINE"
     exit 0
   fi
   sleep 5
