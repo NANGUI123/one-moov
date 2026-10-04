@@ -72,10 +72,22 @@ def _reinit(db) -> None:
     logger.info("Tables RAG remises à zéro.")
 
 
-def _deja_ingere(db, url: str, version: int) -> bool:
+def _deja_ingere(db, titre: str, version: int) -> bool:
+    """Ce document est-il déjà en base ?
+
+    La comparaison porte sur le TITRE, pas sur l'URL. Deux sections d'une
+    même procédure citent légitimement la même page officielle : « la
+    procédure Études en France » et « l'entretien Campus France » renvoient
+    toutes deux vers la plateforme. Avec l'URL comme clé, la seconde était
+    tenue pour déjà ingérée et disparaissait sans un mot — six passages sur
+    trente, dont toute la section entretien, qui est le cœur du produit.
+
+    Le symptôme était invisible : le journal annonçait « 6 documents, 24
+    passages ajoutés » sans signaler qu'un document avait été sauté.
+    """
     row = db.execute(
-        text("SELECT 1 FROM rag_documents WHERE url = :u AND version = :v LIMIT 1"),
-        {"u": url, "v": version},
+        text("SELECT 1 FROM rag_documents WHERE titre = :t AND version = :v LIMIT 1"),
+        {"t": titre, "v": version},
     ).fetchone()
     return row is not None
 
@@ -94,16 +106,28 @@ def ingerer_procedures(db, avec_embedding: bool) -> tuple[int, int]:
     docs_ajoutes = 0
     passages_ajoutes = 0
 
+    vus: set[str] = set()
     for doc in corpus.get("documents", []):
         url = doc.get("url_officielle") or doc.get("reference") or ""
+        titre = doc.get("titre", "Sans titre")
         version = int(doc.get("version") or 1)
-        if _deja_ingere(db, url, version):
+
+        # Un titre en double dans le fichier source ferait disparaître le
+        # second document à la prochaine exécution. Autant le dire tout de
+        # suite plutôt que de le découvrir en mesurant le rappel.
+        if titre in vus:
+            logger.warning("Titre de document en double dans procedures.json : "
+                           "« %s ». Le second sera ignoré au prochain "
+                           "lancement.", titre)
+        vus.add(titre)
+
+        if _deja_ingere(db, titre, version):
             continue
 
         doc_id = rag.ajouter_document(
             db,
             organisme=doc.get("organisme", "Officiel"),
-            titre=doc.get("titre", "Sans titre"),
+            titre=titre,
             url=url,
             version=version,
             phase="",

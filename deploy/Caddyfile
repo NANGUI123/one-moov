@@ -1,0 +1,45 @@
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	}
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+	handle /health {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		root * /srv
+		# route : exécution dans l'ordre écrit, pour que les en-têtes HTML
+		# s'appliquent aussi après le repli SPA vers /index.html.
+		route {
+			try_files {path} /index.html
+			header /assets/* Cache-Control "public, max-age=31536000, immutable"
+			header /icons/* Cache-Control "public, max-age=86400"
+			header /sw.js {
+				Cache-Control "no-cache, no-store, must-revalidate"
+				Service-Worker-Allowed /
+			}
+			header /manifest.webmanifest {
+				Cache-Control no-cache
+				Content-Type application/manifest+json
+			}
+			@html path / /index.html
+			header @html {
+				Cache-Control no-cache
+				Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'; manifest-src 'self'"
+			}
+			file_server
+		}
+	}
+}
+
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}

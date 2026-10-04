@@ -603,6 +603,7 @@ function Rapport({ piste, rapport, onNext }) {
   const syn = rapport?.synthese || (piste?.profil || {}).synthese || null;
   const profil = rapport?.profil || piste?.profil || {};
   const transp = rapport?.transparence || TRANSPARENCE;
+  const couverture = rapport?.couverture || piste?.couverture || null;
   const [showT, setShowT] = useState(false);
 
   // Budget : on lit indifféremment budget_annuel ou budget_mensuel*12 dans
@@ -707,12 +708,36 @@ function Rapport({ piste, rapport, onNext }) {
         )}
       </div>
 
+      {/* Couverture du catalogue. Quand le domaine demandé n'y est pas, on
+          le dit avant la liste plutôt que de laisser croire que ces écoles
+          correspondent. Le bouton de vérification RNCP est la sortie utile
+          pour un étudiant qui a déjà une école en tête. */}
+      {couverture && couverture.couvert === false && (
+        <div className="card alerte-couverture">
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>
+            Votre domaine n'est pas encore dans notre base
+          </div>
+          <p style={{ margin: "0 0 8px" }}>{couverture.message}</p>
+          {couverture.domaines_disponibles?.length > 0 && (
+            <p className="muted" style={{ margin: 0, fontSize: 13 }}>
+              Domaines couverts aujourd'hui :{" "}
+              {couverture.domaines_disponibles.join(" · ")}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="muted" style={{ margin: "6px 0" }}>{t("rapport.pistes")}</div>
       {list.map((f) => (
         <div className="card" key={f.id}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 700 }}>{f.etablissement || f.intitule}</div>
+              <div style={{ fontWeight: 700 }}>
+                {f.etablissement || f.intitule}
+                {f.correspondance === "hors_domaine" && (
+                  <span className="etiquette-hors-domaine">hors domaine</span>
+                )}
+              </div>
               <div className="muted" style={{ fontSize: 13 }}>
                 {[f.ville, f.cout_annuel ? `${fmtEur(f.cout_annuel)} par an` : null].filter(Boolean).join(" · ")}
               </div>
@@ -727,11 +752,22 @@ function Rapport({ piste, rapport, onNext }) {
           <RncpCarte formation={f} piste={piste} />
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, gap: 8, flexWrap: "wrap" }}>
-            {f.url ? (
-              <a className="link" href={f.url} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
-                {t("rapport.rncp.site_etab")}
+            {/* Lien "Site de l'établissement" : on NE confie PAS une URL
+                statique à l'affichage — trop d'écoles ont refondu leur site
+                ou protègent la page par cookies/WAF, ce qui amenait des
+                400/404 au clic. On construit à la volée une recherche
+                DuckDuckGo (!ducky = Je tente ma chance) sur École + Ville +
+                Intitulé formation : l'étudiant atterrit directement sur la
+                vraie page de la formation, sur le site officiel. Fallback
+                sur la page de résultats si !ducky n'est pas disponible. */}
+            {(f.etablissement || f.intitule) && (
+              <a className="link" style={{ fontSize: 13 }} target="_blank" rel="noreferrer"
+                href={`https://duckduckgo.com/?q=${encodeURIComponent(
+                  `!ducky ${f.etablissement || ""} ${f.ville || ""} ${f.intitule || ""}`.trim()
+                )}`}>
+                {t("rapport.rncp.site_etab")} ↗
               </a>
-            ) : <span />}
+            )}
             <div className="muted" style={{ fontSize: 12 }}>
               {f.explication ? `${t("rapport.pourquoi")} : ${f.explication}` : ""}
             </div>
@@ -777,13 +813,18 @@ function RncpCarte({ formation, piste }) {
         formation.intitule || "", formation.etablissement || "", formation.code_rncp);
       setDetail(r);
     } catch {
-      // Fallback : au moins on a le code et le lien vers la recherche officielle.
+      // Fallback : on a au moins le code et l'URL directe (chiffres seuls).
       const c = (formation.code_rncp || "").toUpperCase().replace(/\s/g, "");
+      const n = c.replace(/\D/g, "");
+      const rep = c.startsWith("RS") ? "rs" : "rncp";
+      const url = n
+        ? `https://www.francecompetences.fr/recherche/${rep}/${n}/`
+        : "https://www.francecompetences.fr/recherche_certificationprofessionnelle/";
       setDetail({
         code_rncp: c, intitule: formation.intitule || "",
         certificateurs: formation.etablissement ? [formation.etablissement] : [],
         niveau: "", date_echeance: "", date_verif: "",
-        url_fiche: `https://www.francecompetences.fr/recherche_certificationprofessionnelle/?text=${c}`,
+        url_fiche: url,
         statut: "indetermine", deconseille: false,
       });
     }
@@ -845,9 +886,13 @@ function RncpCarte({ formation, piste }) {
   const cert = (detail?.certificateurs?.[0]) || formation.etablissement || "";
   const niveau = niveauLibelle(detail?.niveau);
   const dateVerif = dateFr(detail?.date_verif || new Date().toISOString().slice(0, 10));
-  const urlFiche = detail?.url_fiche
-    || (code ? `https://www.francecompetences.fr/recherche_certificationprofessionnelle/?text=${code}`
-             : "https://www.francecompetences.fr/recherche_certificationprofessionnelle/");
+  const urlFiche = detail?.url_fiche || (() => {
+    const c = (code || "").toUpperCase().replace(/\s/g, "");
+    const n = c.replace(/\D/g, "");
+    if (!n) return "https://www.francecompetences.fr/recherche_certificationprofessionnelle/";
+    const rep = c.startsWith("RS") ? "rs" : "rncp";
+    return `https://www.francecompetences.fr/recherche/${rep}/${n}/`;
+  })();
 
   return (
     <div style={{
@@ -1158,6 +1203,24 @@ function Roadmap({ piste, prenom }) {
         </div>
         <div className="progress"><i style={{ width: `${rm.progression_pct}%` }} /></div>
         <div className="muted">Rentrée visée : {rm.rentree_str}</div>
+
+        {/* Procédure applicable. Elle ne dépend pas que du niveau : la santé
+            et l'architecture relèvent de la DAP quel que soit le niveau
+            d'entrée, avec trois vœux au lieu de sept. Un étudiant à qui on
+            annonce Hors-DAP par défaut dépose sept vœux et perd son année. */}
+        {rm.procedure && (
+          <div className="bandeau-procedure">
+            <div>
+              <b>Votre procédure : {rm.procedure.libelle}</b>
+              {" · "}
+              {rm.procedure.voeux_max} vœux maximum
+            </div>
+            <div className="muted" style={{ fontSize: 13 }}>
+              {rm.procedure.motif}
+              {rm.domaine ? ` (domaine : ${rm.domaine})` : ""}
+            </div>
+          </div>
+        )}
         {pa && (
           <div style={{ marginTop: 10, padding: 10, borderRadius: 10, background: URG[pa.urgence]?.bg || C.surface2 }}>
             <div className="muted">Prochaine action{pa.critique ? " · critique" : ""}</div>

@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1680"
+     height="1120" viewBox="0 0 1680 1120">
+  <defs>
+    <marker id="pointe" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1C3557"/>
+    </marker>
+  </defs>
+  <rect width="1680" height="1120" fill="#FFFFFF"/>
+<rect x="520" y="30" width="560" height="90" rx="6" fill="#EFF3F9" stroke="#0E1F3C" stroke-width="1"/>
+<text x="534" y="60" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="18" fill="#0E1F3C" text-anchor="start" font-weight="600">Étudiant · application web installable</text>
+<text x="534" y="87" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="start">React, pensée pour le téléphone. Hors connexion, la coquille s'affiche et aucune</text>
+<text x="534" y="104" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="start">donnée n'est servie.</text>
+<line x1="800" y1="120" x2="800" y2="164" stroke="#1C3557" stroke-width="2" marker-end="url(#pointe)" stroke-linecap="round"/>
+<text x="812" y="148" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="start" font-style="italic">HTTPS</text>
+<rect x="40" y="166" width="1520" height="118" rx="6" fill="#FFFFFF" stroke="#0E1F3C" stroke-width="2"/>
+<text x="64" y="200" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="21" fill="#0E1F3C" text-anchor="start" font-weight="600">API FastAPI</text>
+<text x="64" y="224" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">authentifie, autorise,</text>
+<text x="64" y="240" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">journalise la consommation</text>
+<rect x="430" y="206" width="148" height="46" rx="5" fill="#EFF3F9" stroke="#C3CBD8" stroke-width="1"/>
+<text x="504.0" y="235" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="middle">auth</text>
+<rect x="590" y="206" width="148" height="46" rx="5" fill="#EFF3F9" stroke="#C3CBD8" stroke-width="1"/>
+<text x="664.0" y="235" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="middle">pistes</text>
+<rect x="750" y="206" width="148" height="46" rx="5" fill="#EFF3F9" stroke="#C3CBD8" stroke-width="1"/>
+<text x="824.0" y="235" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="middle">orientation</text>
+<rect x="910" y="206" width="148" height="46" rx="5" fill="#EFF3F9" stroke="#C3CBD8" stroke-width="1"/>
+<text x="984.0" y="235" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="middle">feuille de route</text>
+<rect x="1070" y="206" width="148" height="46" rx="5" fill="#EFF3F9" stroke="#C3CBD8" stroke-width="1"/>
+<text x="1144.0" y="235" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="middle">RNCP</text>
+<rect x="1230" y="206" width="148" height="46" rx="5" fill="#EFF3F9" stroke="#C3CBD8" stroke-width="1"/>
+<text x="1304.0" y="235" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="middle">paiement</text>
+<rect x="1390" y="206" width="148" height="46" rx="5" fill="#EFF3F9" stroke="#C3CBD8" stroke-width="1"/>
+<text x="1464.0" y="235" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="middle">chatbot</text>
+<line x1="380" y1="284" x2="380" y2="326" stroke="#1C3557" stroke-width="2" marker-end="url(#pointe)" stroke-linecap="round"/>
+<line x1="1220" y1="284" x2="1220" y2="326" stroke="#1C3557" stroke-width="2" marker-end="url(#pointe)" stroke-linecap="round"/>
+<rect x="40" y="330" width="680" height="430" rx="6" fill="#FFFFFF" stroke="#E27D2E" stroke-width="2"/>
+<rect x="40" y="330" width="680" height="54" rx="6" fill="#E27D2E" stroke="#E27D2E" stroke-width="2"/>
+<rect x="40" y="370" width="680" height="14" fill="#E27D2E"/>
+<text x="64" y="366" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="23" fill="#FFFFFF" text-anchor="start" font-weight="600">Le modèle propose</text>
+<text x="696" y="365" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#FBE3CB" text-anchor="end">il ne fixe aucune valeur</text>
+<text x="64" y="406" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="16" fill="#0E1F3C" text-anchor="start" font-weight="600">Orchestrateur · trois niveaux de repli</text>
+<rect x="64" y="416" width="632" height="66" rx="6" fill="#FDF2E7" stroke="#EFD6BC" stroke-width="1"/>
+<rect x="64" y="416" width="5" height="66" rx="2" fill="#E27D2E"/>
+<text x="82" y="440.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14.5" fill="#0E1F3C" text-anchor="start" font-weight="600">Niveau 1 — fournisseur nominal</text>
+<text x="82" y="462.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">deux modèles essayés dans l'ordre ; le petit traite les tâches simples</text>
+<rect x="64" y="490" width="632" height="66" rx="6" fill="#FDF2E7" stroke="#EFD6BC" stroke-width="1"/>
+<rect x="64" y="490" width="5" height="66" rx="2" fill="#E27D2E"/>
+<text x="82" y="514.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14.5" fill="#0E1F3C" text-anchor="start" font-weight="600">Niveau 2 — secours chez un autre hébergeur</text>
+<text x="82" y="536.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">couvre la panne de l'hébergeur, pas seulement celle d'un modèle</text>
+<rect x="64" y="564" width="632" height="66" rx="6" fill="#FDF2E7" stroke="#EFD6BC" stroke-width="1"/>
+<rect x="64" y="564" width="5" height="66" rx="2" fill="#E27D2E"/>
+<text x="82" y="588.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14.5" fill="#0E1F3C" text-anchor="start" font-weight="600">Niveau 3 — mode guidé, sans IA</text>
+<text x="82" y="610.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">le parcours reste utilisable et le motif est affiché</text>
+<rect x="64" y="640" width="632" height="56" rx="6" fill="#FFFFFF" stroke="#C3CBD8" stroke-width="1"/>
+<text x="76" y="664.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14.5" fill="#0E1F3C" text-anchor="start" font-weight="600">Quotas — appels comptés en base</text>
+<text x="76" y="686.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">au plafond, bascule en mode guidé avec son motif</text>
+<text x="64" y="724" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#5B6676" text-anchor="start" font-style="italic">produit : reformulations, questions, explications</text>
+<rect x="730" y="330" width="140" height="430" rx="6" fill="#FFF8F1" stroke="#E27D2E" stroke-width="3"/>
+<g transform="rotate(-90 800.0 545.0)">
+<text x="800.0" y="521.0" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="22" fill="#0E1F3C" text-anchor="middle" font-weight="600">Garde-fou des faits</text>
+<text x="800.0" y="547.0" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="middle">tout nombre sorti du modèle est confronté au contexte vérifié ;</text>
+<text x="800.0" y="564.0" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="middle">sans correspondance, la phrase est remplacée par sa source</text>
+<text x="800.0" y="595.0" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#E27D2E" text-anchor="middle" font-weight="600">services/garde_faits.py · 15 tests</text>
+</g>
+<line x1="722" y1="520" x2="726" y2="520" stroke="#1C3557" stroke-width="2" marker-end="url(#pointe)" stroke-linecap="round"/>
+<line x1="878" y1="560" x2="874" y2="560" stroke="#1C3557" stroke-width="2" marker-end="url(#pointe)" stroke-linecap="round"/>
+<rect x="880" y="330" width="680" height="430" rx="6" fill="#FFFFFF" stroke="#0E1F3C" stroke-width="2"/>
+<rect x="880" y="330" width="680" height="54" rx="6" fill="#0E1F3C" stroke="#0E1F3C" stroke-width="2"/>
+<rect x="880" y="370" width="680" height="14" fill="#0E1F3C"/>
+<text x="904" y="366" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="23" fill="#FFFFFF" text-anchor="start" font-weight="600">La donnée fait autorité</text>
+<text x="1536" y="365" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#B9C6DA" text-anchor="end">montants, délais, codes</text>
+<text x="904" y="406" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="16" fill="#0E1F3C" text-anchor="start" font-weight="600">Des règles explicites, que l'étudiant peut vérifier</text>
+<rect x="904" y="416" width="632" height="62" rx="6" fill="#EFF3F9" stroke="#CBD6E6" stroke-width="1"/>
+<rect x="904" y="416" width="5" height="62" rx="2" fill="#0E1F3C"/>
+<text x="922" y="440.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14.5" fill="#0E1F3C" text-anchor="start" font-weight="600">Classement déterministe</text>
+<text x="922" y="462.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">domaine 40 · niveau 25 · budget 20 · ville 12 · voie 6 ; le motif du rang est affiché</text>
+<rect x="904" y="486" width="632" height="62" rx="6" fill="#EFF3F9" stroke="#CBD6E6" stroke-width="1"/>
+<rect x="904" y="486" width="5" height="62" rx="2" fill="#0E1F3C"/>
+<text x="922" y="510.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14.5" fill="#0E1F3C" text-anchor="start" font-weight="600">Entonnoir niveau × domaine</text>
+<text x="922" y="532.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">DAP blanche, DAP jaune ou Hors-DAP ; trois vœux ou sept, selon le champ visé</text>
+<rect x="904" y="556" width="632" height="62" rx="6" fill="#EFF3F9" stroke="#CBD6E6" stroke-width="1"/>
+<rect x="904" y="556" width="5" height="62" rx="2" fill="#0E1F3C"/>
+<text x="922" y="580.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14.5" fill="#0E1F3C" text-anchor="start" font-weight="600">Recherche hybride</text>
+<text x="922" y="602.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">lexicale et vectorielle, fusionnées par RRF (k = 60) ; chaque passage cite sa source</text>
+<rect x="904" y="626" width="632" height="62" rx="6" fill="#EFF3F9" stroke="#CBD6E6" stroke-width="1"/>
+<rect x="904" y="626" width="5" height="62" rx="2" fill="#0E1F3C"/>
+<text x="922" y="650.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14.5" fill="#0E1F3C" text-anchor="start" font-weight="600">Vérification RNCP</text>
+<text x="922" y="672.5" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12.5" fill="#5B6676" text-anchor="start">l'export officiel décide ; le modèle relié au web n'ajoute qu'un complément marqué non confirmé</text>
+<text x="904" y="716" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#5B6676" text-anchor="start" font-style="italic">produit : des faits, avec organisme, adresse officielle et date de vérification</text>
+<line x1="380" y1="760" x2="380" y2="802" stroke="#1C3557" stroke-width="2" marker-end="url(#pointe)" stroke-linecap="round"/>
+<line x1="1220" y1="760" x2="1220" y2="802" stroke="#1C3557" stroke-width="2" marker-end="url(#pointe)" stroke-linecap="round"/>
+<rect x="40" y="806" width="680" height="128" rx="6" fill="#FFFFFF" stroke="#0E1F3C" stroke-width="1"/>
+<text x="56" y="838" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="18" fill="#0E1F3C" text-anchor="start" font-weight="600">PostgreSQL</text>
+<text x="56" y="865" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="start">Comptes (empreinte bcrypt), pistes, formations, étapes, consommation de jetons.</text>
+<text x="56" y="882" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="start">Aucune conversation n'est conservée, pour personne. La suppression d'un compte efface en cascade, sans</text>
+<text x="56" y="899" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="start">corbeille.</text>
+<rect x="880" y="806" width="680" height="128" rx="6" fill="#FFFFFF" stroke="#0E1F3C" stroke-width="1"/>
+<text x="896" y="838" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="18" fill="#0E1F3C" text-anchor="start" font-weight="600">Corpus documentaire</text>
+<text x="896" y="865" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="start">rag_documents et rag_passages : organisme, adresse officielle, version, date d'ingestion.</text>
+<text x="896" y="882" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="start">Reconstruit par un script ; la clé d'unicité est le titre, deux documents pouvant partager une page.</text>
+<rect x="40" y="964" width="1520" height="96" rx="6" fill="#F7F9FC" stroke="#C3CBD8" stroke-width="1" stroke-dasharray="7 5"/>
+<text x="64" y="1000" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="15" fill="#0E1F3C" text-anchor="start" font-weight="600">Sources</text>
+<text x="64" y="1020" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="15" fill="#0E1F3C" text-anchor="start" font-weight="600">et services tiers</text>
+<rect x="250" y="980" width="300" height="64" rx="5" fill="#FFFFFF" stroke="#C3CBD8" stroke-width="1"/>
+<text x="262" y="1004" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="start" font-weight="600">CinetPay</text>
+<text x="262" y="1022" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12" fill="#5B6676" text-anchor="start">page hébergée · XAF, zone CEMAC · carte comprise</text>
+<rect x="564" y="980" width="300" height="64" rx="5" fill="#FFFFFF" stroke="#C3CBD8" stroke-width="1"/>
+<text x="576" y="1004" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="start" font-weight="600">SMTP</text>
+<text x="576" y="1022" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12" fill="#5B6676" text-anchor="start">jeton de vérification à usage unique</text>
+<rect x="878" y="980" width="300" height="64" rx="5" fill="#FFFFFF" stroke="#C3CBD8" stroke-width="1"/>
+<text x="890" y="1004" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="start" font-weight="600">France Compétences</text>
+<text x="890" y="1022" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12" fill="#5B6676" text-anchor="start">export des fiches RNCP</text>
+<rect x="1192" y="980" width="300" height="64" rx="5" fill="#FFFFFF" stroke="#C3CBD8" stroke-width="1"/>
+<text x="1204" y="1004" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#0E1F3C" text-anchor="start" font-weight="600">ONISEP et portails publics</text>
+<text x="1204" y="1022" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12" fill="#5B6676" text-anchor="start">catalogue des formations</text>
+<path d="M1220,962 L1220,938" fill="none" stroke="#1C3557" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#pointe)" stroke-linejoin="round"/>
+<text x="1236" y="955" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="12" fill="#5B6676" text-anchor="start" font-style="italic">ingestion, repli sur instantané local</text>
+<path d="M1568,1012 L1610,1012 L1610,225 L1564,225" fill="none" stroke="#1C3557" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#pointe)" stroke-linejoin="round"/>
+<g transform="rotate(-90 1596 640)">
+<text x="1596" y="644" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="13" fill="#5B6676" text-anchor="middle" font-style="italic">webhook de paiement, signé et idempotent</text>
+</g>
+<text x="40" y="1096" font-family="Carlito, Calibri, DejaVu Sans, sans-serif" font-size="14" fill="#5B6676" text-anchor="start" font-style="italic">Trait plein : la demande descend, la réponse remonte par le même chemin.    Pointillé : asynchrone.    Orange : du texte.    Marine : un fait.</text>
+</svg>

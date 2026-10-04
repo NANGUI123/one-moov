@@ -94,8 +94,12 @@ def _map(d: dict) -> dict:
         msg += f" {d['commentaire']}"
 
     code = (d.get("code_rncp", "") or "").upper().replace(" ", "")
-    url_fiche = (f"https://www.francecompetences.fr/recherche_certificationprofessionnelle/?text={code}"
-                 if code else "https://www.francecompetences.fr/recherche_certificationprofessionnelle/")
+    numero = re.sub(r"\D", "", code)
+    if numero:
+        repertoire = "rs" if code.startswith("RS") else "rncp"
+        url_fiche = f"https://www.francecompetences.fr/recherche/{repertoire}/{numero}/"
+    else:
+        url_fiche = "https://www.francecompetences.fr/recherche_certificationprofessionnelle/"
     return {
         "statut": statut,
         "code_rncp": code,

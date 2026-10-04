@@ -5,7 +5,9 @@ Cœur de la fiabilité : les formations viennent de la BASE (table `formations`)
 sont filtrées et classées par des règles explicables. Le LLM ne les invente pas
 et ne les reclasse pas ; il ne fait que présenter le résultat.
 """
+import re
 import unicodedata
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.models import Formation
 
@@ -33,6 +35,19 @@ def _famille_niveau(s: str) -> str:
     return s
 
 
+def domaines_couverts(db: Session) -> list[str]:
+    """Les domaines réellement présents dans la base, avec leur effectif.
+
+    Sert à répondre honnêtement quand le domaine d'un étudiant n'est pas
+    couvert : lui dire ce que nous avons vaut mieux que lui proposer autre
+    chose sans le dire.
+    """
+    lignes = (db.query(Formation.domaine, func.count(Formation.id))
+                .group_by(Formation.domaine)
+                .order_by(func.count(Formation.id).desc()).all())
+    return [d for d, _ in lignes if d]
+
+
 def top_formations(db: Session, profil: dict, k: int = 10) -> list[dict]:
     domaine = _norm(profil.get("domaine", ""))
     niveau = _norm(profil.get("niveau_vise") or profil.get("niveau", ""))
@@ -48,6 +63,7 @@ def top_formations(db: Session, profil: dict, k: int = 10) -> list[dict]:
         "developpement": "informatique", "cyber": "informatique", "data": "informatique",
         "business": "commerce gestion", "gestion": "commerce gestion", "finance": "commerce gestion",
         "marketing": "commerce gestion", "management": "commerce gestion",
+        "commercial": "commerce gestion", "sciences sociales": "social education",
         "juridique": "droit sciences po", "science politique": "droit sciences po",
         "medecine": "sante medecine", "sante": "sante medecine", "biologie": "sciences ingenierie",
         "psychologie": "lettres humaines", "sciences humaines": "lettres humaines",
@@ -65,9 +81,12 @@ def top_formations(db: Session, profil: dict, k: int = 10) -> list[dict]:
         "restauration": "tourisme hotellerie",
         "agronomie": "agriculture agronomie", "agriculture": "agriculture agronomie",
     }
-    for k_al, v_al in ALIAS.items():
-        if k_al in domaine:
-            domaine = v_al
+    # Mots entiers, alias les plus longs d'abord : « ia » ne doit pas attraper
+    # « social » ni « médias », et « développement durable » doit l'emporter
+    # sur « développement ».
+    for k_al in sorted(ALIAS, key=len, reverse=True):
+        if re.search(rf"\b{re.escape(k_al)}\b", domaine):
+            domaine = ALIAS[k_al]
             break
 
     rows = db.query(Formation).all()
@@ -75,10 +94,17 @@ def top_formations(db: Session, profil: dict, k: int = 10) -> list[dict]:
     for f in rows:
         score, raisons = 0, []
         fd = _norm(f.domaine)
+        correspondance = "hors_domaine"
         if domaine and (domaine in fd or fd in domaine):
-            score += 40; raisons.append("domaine correspondant")
+            score += 40
+            correspondance = "domaine"
+            raisons.append(f"domaine {f.domaine}")
         elif domaine and _mots_communs(domaine, fd):
-            score += 20; raisons.append("domaine proche")
+            score += 20
+            correspondance = "proche"
+            raisons.append(f"domaine proche : {f.domaine}")
+        elif not domaine:
+            correspondance = "sans_domaine"
 
         if niveau:
             fn, pn = _famille_niveau(f.niveau), _famille_niveau(niveau)
@@ -101,17 +127,28 @@ def top_formations(db: Session, profil: dict, k: int = 10) -> list[dict]:
         if voie and _norm(f.voie) == voie:
             score += 6
 
-        scored.append((score, f, raisons))
+        scored.append((score, f, raisons, correspondance))
 
-    scored.sort(key=lambda x: -x[0])
-    top = [t for t in scored if t[0] > 0][:k] or scored[:k]
+    # Le tri place d'abord ce qui relève du domaine demandé. Sans cette clé,
+    # une formation hors sujet bien notée sur le niveau et le budget passe
+    # devant une formation du bon domaine un peu plus chère — c'est ce qui
+    # faisait proposer de l'informatique à un étudiant en architecture.
+    rang = {"domaine": 0, "proche": 1, "sans_domaine": 1, "hors_domaine": 2}
+    scored.sort(key=lambda x: (rang[x[3]], -x[0]))
+    top = [s for s in scored if s[0] > 0][:k] or scored[:k]
+
     return [{
         "id": f.id, "intitule": f.intitule, "etablissement": f.etablissement,
         "ville": f.ville, "domaine": f.domaine, "niveau": f.niveau, "voie": f.voie,
         "cout_annuel": f.cout_annuel, "url": f.url, "code_rncp": f.code_rncp,
         "source": f.source, "score": score,
-        "explication": ", ".join(raisons) or "formation du domaine",
-    } for score, f, raisons in top]
+        "correspondance": correspondance,
+        # Quand aucun critère du profil n'est satisfait, on le dit. L'ancien
+        # libellé par défaut annonçait « formation du domaine » même lorsque
+        # le domaine ne correspondait pas du tout.
+        "explication": ", ".join(raisons) or "aucun critère de votre profil "
+                                             "ne correspond à cette formation",
+    } for score, f, raisons, correspondance in top]
 
 
 def _to_int(v) -> int:

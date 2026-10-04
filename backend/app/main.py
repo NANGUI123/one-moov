@@ -38,8 +38,18 @@ def _startup():
     except Exception as e:  # noqa: BLE001
         logger.warning(f"Init RAG différée : {e}")
     llm = get_llm()
-    logger.info(f"Base : {settings.db_url.split('://')[0]} | LLM Groq actif : {llm.available} "
-                f"| modèles : {llm.models}")
+    etat = llm.etat()
+    logger.info(
+        f"Base : {settings.db_url.split('://')[0]} | niveaux IA : "
+        f"{etat['niveaux_avec_ia']}/2 | nominal {etat['principal']['modeles']} "
+        f"actif={etat['principal']['actif']} | secours actif={etat['secours']['actif']}"
+    )
+    if etat["niveaux_avec_ia"] < 2:
+        logger.warning(
+            "Pas de secours chez un second hébergeur : une panne du "
+            "fournisseur nominal fait tomber directement en mode guidé. "
+            "Poser SECOURS_API_KEY pour l'activer."
+        )
     # État des notifications : e-mail (SMTP/Brevo) et WhatsApp (Twilio).
     # Rend visible depuis les logs si un fournisseur reste en mode démo,
     # ce qui évite de deviner pourquoi les mails ne partent pas.
@@ -79,8 +89,13 @@ def _startup():
 @app.get("/health")
 def health():
     llm = get_llm()
+    etat = llm.etat()
     return {"status": "ok", "llm_actif": llm.available, "modeles": llm.models,
-            "mode": "IA" if llm.available else "guidé (sans clé Groq)"}
+            "mode": "IA" if llm.available else "guidé (sans clé de modèle)",
+            # Le détail des niveaux : c'est ce qui permet de voir d'un coup
+            # d'œil qu'on tourne sans filet plutôt que de le découvrir en
+            # panne.
+            "repli": etat}
 
 
 # ── Routers ───────────────────────────────────────────────────────

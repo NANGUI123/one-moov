@@ -108,6 +108,23 @@ export const GLOBAL_CSS = `
     box-shadow: var(--shadow-card); }
   .card-soft { background: var(--surface-2); box-shadow: none; }
 
+  /* Couverture manquante : l'avertissement doit se voir sans crier. Le ton
+     ambre le distingue des cartes de pistes sans ressembler à une erreur —
+     ce n'est pas une panne, c'est une limite de notre catalogue. */
+  .bandeau-procedure { margin-top: 10px; padding: 10px 12px; border-radius: 10px;
+    background: var(--surface-2); border: 1px solid var(--line); }
+
+  .card.alerte-couverture { border-color: #e2a13b; background: #fdf3e0; }
+  :root[data-theme="dark"] .card.alerte-couverture {
+    background: #2a2415; border-color: #a9772a; }
+
+  .etiquette-hors-domaine { display: inline-block; margin-left: 8px;
+    padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700;
+    letter-spacing: .2px; vertical-align: middle;
+    background: #fdf3e0; color: #8a5d12; border: 1px solid #e2a13b; }
+  :root[data-theme="dark"] .etiquette-hors-domaine {
+    background: #2a2415; color: #e8c489; border-color: #a9772a; }
+
   .btn { background: var(--teal); color: var(--btn-ink); border: 0;
     border-radius: 10px; padding: 12px 18px; font-weight: 700;
     transition: filter .15s, transform .15s; }

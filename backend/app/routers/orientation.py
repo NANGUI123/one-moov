@@ -17,7 +17,8 @@ from app.deps import get_current_user_optional
 from app.models import User, Piste
 from app.schemas import ChatIn, FormationsIn
 from app.services.llm import get_llm, Meter, LLMUnavailable
-from app.services.orientation_engine import top_formations
+from app.services import quotas
+from app.services.orientation_engine import top_formations, domaines_couverts
 from app.services import rag
 from app.data.ingestion.onisep import charger_formations
 from app.prompts import (SYSTEM_ORIENTATION, SYSTEM_EXTRACT, EXTRACT_TEMPLATE, GUIDE_ETAPES,
@@ -55,6 +56,10 @@ def chat(body: ChatIn, db: Session = Depends(get_db),
     if mode == "guidee" or (mode != "libre" and not llm.available):
         return _mode_guide(msgs)
     if not llm.available:
+        return _mode_guide(msgs)
+    # Quota journalier et plafond de dépense, comptés en base. Le refus sert
+    # le parcours guidé plutôt qu'une erreur : l'étudiant continue.
+    if user and quotas.doit_basculer_en_guide(db, user.id):
         return _mode_guide(msgs)
 
     prenom = (user.prenom if user else "") or "l'étudiant"
@@ -101,6 +106,7 @@ def formations(body: FormationsIn, db: Session = Depends(get_db),
             p.formations = resultats
             db.commit()
     return {"formations": resultats, "total": len(resultats), "profil": profil,
+            "couverture": _couverture(db, profil, resultats),
             "source": "base vérifiée (scoring déterministe)"}
 
 
@@ -130,7 +136,31 @@ def rapport(body: FormationsIn, db: Session = Depends(get_db),
 
     return {"profil": profil, "synthese": synthese, "formations": resultats,
             "total": len(resultats), "transparence": TRANSPARENCE,
+            "couverture": _couverture(db, profil, resultats),
             "source": "base vérifiée (scoring déterministe)", "mode": mode}
+
+
+def _couverture(db: Session, profil: dict | None, resultats: list[dict]) -> dict:
+    """Dit si le domaine demandé est couvert, plutôt que de présenter dix
+    formations d'un autre champ comme si elles convenaient."""
+    domaine = (profil or {}).get("domaine") or ""
+    dans_le_domaine = [r for r in resultats
+                       if r.get("correspondance") in ("domaine", "proche")]
+    couverture = {
+        "domaine_demande": domaine,
+        "couvert": bool(dans_le_domaine) or not domaine,
+        "pistes_du_domaine": len(dans_le_domaine),
+        "domaines_disponibles": domaines_couverts(db),
+    }
+    if not couverture["couvert"]:
+        couverture["message"] = (
+            f"Nous n'avons pas encore de formation en « {domaine} » dans notre "
+            f"base. Les pistes ci-dessous ne relèvent pas de ce domaine : elles "
+            f"sont proposées à titre indicatif, sur votre niveau et votre "
+            f"budget. Si vous avez déjà une école en tête, vous pouvez faire "
+            f"vérifier son titre RNCP."
+        )
+    return couverture
 
 
 def _synthese(db: Session, profil: dict, user: User | None) -> tuple[dict, str]:

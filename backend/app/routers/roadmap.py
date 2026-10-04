@@ -88,9 +88,14 @@ def generate(body: GenerateIn, db: Session = Depends(get_db), user: User = Depen
     if not niveau:
         niveau = (p.roadmap or {}).get("niveau") or _niveau_suggere(p.profil)
     anchor = body.rentree or (p.roadmap or {}).get("rentree")
+    # Le domaine vient du profil de la piste : il décide des deux
+    # bifurcations que le niveau seul ne couvre pas, la santé et
+    # l'architecture.
+    domaine = (p.profil or {}).get("domaine") or ""
 
     done = set((p.roadmap or {}).get("done", []))
-    tree = build_tree(p.voie or "public", niveau, done, anchor, p.formation_privee)
+    tree = build_tree(p.voie or "public", niveau, done, anchor,
+                      p.formation_privee, domaine=domaine)
     tree["done"] = sorted(done)
     p.roadmap = tree
     db.commit()
@@ -109,12 +114,14 @@ def marquer_etape(body: StepIn, db: Session = Depends(get_db), user: User = Depe
     if not p.paid:
         raise HTTPException(402, "Paiement requis.")
     niveau = (p.roadmap or {}).get("niveau") or ""
-    if not etape_par_id(body.step_id, niveau):
+    domaine = (p.profil or {}).get("domaine") or ""
+    if not etape_par_id(body.step_id, niveau, domaine):
         raise HTTPException(404, "Étape inconnue")
     done = set((p.roadmap or {}).get("done", []))
     done.add(body.step_id) if body.fait else done.discard(body.step_id)
     anchor = (p.roadmap or {}).get("rentree")
-    tree = build_tree(p.voie or "public", niveau, done, anchor, p.formation_privee)
+    tree = build_tree(p.voie or "public", niveau, done, anchor,
+                      p.formation_privee, domaine=domaine)
     tree["done"] = sorted(done)
     p.roadmap = tree
     db.commit()
