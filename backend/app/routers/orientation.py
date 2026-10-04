@@ -17,7 +17,8 @@ from app.deps import get_current_user_optional
 from app.models import User, Piste
 from app.schemas import ChatIn, FormationsIn
 from app.services.llm import get_llm, Meter, LLMUnavailable
-from app.services.orientation_engine import top_formations
+from app.services import quotas
+from app.services.orientation_engine import top_formations, domaines_couverts
 from app.services import rag
 from app.data.ingestion.onisep import charger_formations
 from app.prompts import (SYSTEM_ORIENTATION, SYSTEM_EXTRACT, EXTRACT_TEMPLATE, GUIDE_ETAPES,
@@ -55,6 +56,10 @@ def chat(body: ChatIn, db: Session = Depends(get_db),
     if mode == "guidee" or (mode != "libre" and not llm.available):
         return _mode_guide(msgs)
     if not llm.available:
+        return _mode_guide(msgs)
+    # Quota journalier et plafond de dépense, comptés en base. Le refus sert
+    # le parcours guidé plutôt qu'une erreur : l'étudiant continue.
+    if user and quotas.doit_basculer_en_guide(db, user.id):
         return _mode_guide(msgs)
 
     prenom = (user.prenom if user else "") or "l'étudiant"
@@ -94,6 +99,28 @@ def formations(body: FormationsIn, db: Session = Depends(get_db),
     if not resultats:
         raise HTTPException(503, "Référentiel de formations vide — lancez l'ingestion")
 
+    # Couverture : si rien ne relève du domaine demandé, on le dit au lieu de
+    # présenter dix formations d'un autre champ comme si elles convenaient.
+    # C'est le défaut qu'un étudiant en architecture rencontrait : il
+    # recevait de l'informatique, sans un mot.
+    dans_le_domaine = [r for r in resultats
+                       if r.get("correspondance") in ("domaine", "proche")]
+    couverture = {
+        "domaine_demande": (profil or {}).get("domaine") or "",
+        "couvert": bool(dans_le_domaine) or not (profil or {}).get("domaine"),
+        "pistes_du_domaine": len(dans_le_domaine),
+        "domaines_disponibles": domaines_couverts(db),
+    }
+    if not couverture["couvert"]:
+        couverture["message"] = (
+            f"Nous n'avons pas encore de formation en "
+            f"« {couverture['domaine_demande']} » dans notre base. Les pistes "
+            f"ci-dessous ne relèvent pas de ce domaine : elles sont "
+            f"proposées à titre indicatif, sur votre niveau et votre budget. "
+            f"Si vous avez déjà une école en tête, vous pouvez faire vérifier "
+            f"son titre RNCP."
+        )
+
     if body.piste_id and user:
         p = db.get(Piste, body.piste_id)
         if p and p.user_id == user.id:
@@ -101,6 +128,7 @@ def formations(body: FormationsIn, db: Session = Depends(get_db),
             p.formations = resultats
             db.commit()
     return {"formations": resultats, "total": len(resultats), "profil": profil,
+            "couverture": couverture,
             "source": "base vérifiée (scoring déterministe)"}
 
 

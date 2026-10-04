@@ -14,6 +14,13 @@ logger = logging.getLogger(__name__)
 settings = get_settings()
 API = "https://api-checkout.cinetpay.com/v2"
 
+# Le Cameroun et le Congo-Brazzaville sont en zone CEMAC : leur franc CFA est
+# le XAF, pas le XOF d'Afrique de l'Ouest. Les deux ont la même parité fixe
+# avec l'euro (655,957), donc une erreur de code passe inaperçue tant qu'on
+# reste en bac à sable — le montant reste juste. Elle ne passe pas au premier
+# encaissement réel.
+DEVISE = "XAF"
+
 
 def is_live() -> bool:
     return bool(settings.CINETPAY_API_KEY and settings.CINETPAY_SITE_ID
@@ -33,8 +40,12 @@ def init_payment(transaction_id: str, amount_fcfa: int, description: str) -> dic
     try:
         payload = {
             "apikey": settings.CINETPAY_API_KEY, "site_id": settings.CINETPAY_SITE_ID,
-            "transaction_id": transaction_id, "amount": amount_fcfa, "currency": "XOF",
+            "transaction_id": transaction_id, "amount": amount_fcfa,
+            "currency": DEVISE,
             "description": description, "notify_url": notify, "return_url": ret,
+            # ALL couvre le mobile money ET la carte bancaire. La carte sert
+            # surtout au payeur de la diaspora : un parent ou un aîné en
+            # France qui règle pour l'étudiant resté au pays.
             "channels": "ALL",
         }
         r = httpx.post(f"{API}/payment", json=payload, timeout=20)

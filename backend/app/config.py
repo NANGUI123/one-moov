@@ -11,10 +11,24 @@ class Settings(BaseSettings):
     # Base de données — vide => SQLite local (démarre sans rien installer)
     DATABASE_URL: str = ""
 
-    # LLM Groq
+    # LLM — niveau 1, le fournisseur nominal
+    #
+    # L'ordre des modèles est l'ordre d'essai. llama-3.3-70b-versatile a quitté
+    # le palier gratuit de Groq le 16 août 2026 : le laisser en tête faisait
+    # payer un échec à chaque requête avant de réussir sur le second.
     GROQ_API_KEY: str = ""
-    GROQ_MODELS: str = "llama-3.3-70b-versatile,llama-3.1-8b-instant"
+    GROQ_MODELS: str = "llama-3.1-8b-instant,llama-3.3-70b-versatile"
     GROQ_MODEL_LEGER: str = "llama-3.1-8b-instant"
+
+    # LLM — niveau 2, le secours, DÉLIBÉRÉMENT chez un autre hébergeur
+    #
+    # Deux modèles chez un même fournisseur tombent ensemble : une panne de
+    # l'hébergeur les emporte tous les deux. Ce niveau n'existe que pour
+    # couvrir ce cas. Sans clé, il est simplement sauté et le mode guidé
+    # reste le dernier recours.
+    SECOURS_API_KEY: str = ""
+    SECOURS_BASE_URL: str = "https://api.mistral.ai/v1"
+    SECOURS_MODELS: str = "mistral-small-latest"
 
     # Sécurité
     JWT_SECRET: str = "change-me-in-production"
@@ -85,6 +99,10 @@ class Settings(BaseSettings):
     @property
     def groq_models(self) -> list[str]:
         return [m.strip() for m in self.GROQ_MODELS.split(",") if m.strip()]
+
+    @property
+    def secours_models(self) -> list[str]:
+        return [m.strip() for m in self.SECOURS_MODELS.split(",") if m.strip()]
 
     @property
     def prix_fcfa(self) -> int:

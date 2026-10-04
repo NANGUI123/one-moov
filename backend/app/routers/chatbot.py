@@ -13,7 +13,7 @@ from app.models import User, Piste
 from app.schemas import ChatbotIn
 from app.services.llm import get_llm, Meter, LLMUnavailable
 from app.services.roadmap_engine import etape_par_id
-from app.services import rag
+from app.services import rag, garde_faits, quotas
 
 router = APIRouter(prefix="/api/chatbot", tags=["chatbot"])
 
@@ -34,7 +34,8 @@ def chatbot(body: ChatbotIn, db: Session = Depends(get_db), user: User = Depends
         raise HTTPException(402, "Le chatbot fait partie de la formule payante.")
 
     niveau = (p.roadmap or {}).get("niveau") or ""
-    etape = etape_par_id(body.etape, niveau) if body.etape else None
+    domaine = (p.profil or {}).get("domaine") or ""
+    etape = etape_par_id(body.etape, niveau, domaine) if body.etape else None
     contexte = ""
     if etape:
         echeance = ""
@@ -55,6 +56,15 @@ def chatbot(body: ChatbotIn, db: Session = Depends(get_db), user: User = Depends
     llm = get_llm()
     msgs = [{"role": m.role, "content": m.content} for m in body.messages]
 
+    # Quota et budget : comptés en base, donc justes même avec plusieurs
+    # instances. Le refus sert le mode guidé, pas une erreur.
+    raison = quotas.doit_basculer_en_guide(db, user.id)
+    if raison:
+        return {"content": raison + "\n\n" + _guide(etape, passages),
+                "mode": "guidé", "sources": [
+                    {"titre": pa.titre or pa.document, "organisme": pa.organisme,
+                     "url": pa.url} for pa in passages[:3]]}
+
     if not llm.available:
         return {"content": _guide(etape, passages), "mode": "guidé",
                 "sources": [{"titre": p.titre or p.document, "organisme": p.organisme,
@@ -68,6 +78,17 @@ def chatbot(body: ChatbotIn, db: Session = Depends(get_db), user: User = Depends
         meter = Meter(db=db, endpoint="chatbot", user_id=user.id, piste_id=p.id)
         text_out = llm.chat(msgs, system=system, max_tokens=500, temperature=0.4,
                             leger=True, meter=meter)
+
+        # Garde-fou : un montant ou un délai qui n'était ni dans le contexte
+        # d'étape, ni dans les passages officiels, ni dans ce que l'étudiant
+        # vient d'écrire, a été inventé. On ne l'affiche pas.
+        text_out, violations = garde_faits.filtrer(
+            text_out, contexte, bloc_passages, dernier, endpoint="chatbot")
+        if violations:
+            return {"content": text_out, "mode": "guidé", "sources": [
+                {"titre": pa.titre or pa.document, "organisme": pa.organisme,
+                 "url": pa.url} for pa in passages[:3]]}
+
         # Repère les [1] [2] cités par le LLM pour renvoyer les vraies sources.
         import re as _re
         numeros = [int(n) for n in _re.findall(r"\[(\d+)\]", text_out or "")]

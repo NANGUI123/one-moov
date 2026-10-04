@@ -103,6 +103,131 @@ NIVEAUX_IDS = {n["id"] for n in NIVEAUX}
 # Adaptations : {niveau_id: {etape_id: {champs à écraser}}}
 # Cohérence : la DAP ne concerne QUE la L1 (et les écoles d'architecture) ;
 # tous les autres niveaux passent par la procédure Hors-DAP.
+# ── Entonnoir par domaine ──────────────────────────────────────────
+#
+# La procédure ne dépend pas que du niveau visé. Deux champs disciplinaires
+# relèvent de la Demande d'Admission Préalable quel que soit le discours
+# habituel sur « la DAP, c'est la L1 » :
+#
+#   DAP blanche  L1 à l'université, Y COMPRIS le parcours accès santé
+#                (médecine, pharmacie, chirurgie dentaire, maïeutique,
+#                masso-kinésithérapie).
+#   DAP jaune    les écoles d'architecture, publiques et privées.
+#
+# Source : Campus France, « Demandes de Licence 1 et écoles d'architecture
+# (procédure DAP) », consulté en octobre 2026. Conséquence concrète pour
+# l'étudiant : trois vœux au lieu de sept, et une clôture plus précoce.
+#
+# Deux autres champs gardent la même procédure mais ajoutent une pièce que
+# personne ne mentionne avant qu'elle manque : le dossier de travaux en arts
+# et design, et le concours ou la plateforme propre des écoles d'ingénieurs
+# et de commerce, qui relèvent souvent de l'établissement non connecté.
+
+FAMILLES_DOMAINE = {
+    "sante": ["sante", "medecine", "medical", "pharmacie", "dentaire",
+              "odontologie", "sage femme", "maieutique", "kinesitherapie",
+              "infirmier", "pass", "las"],
+    "architecture": ["architecture", "architecte", "ensa", "urbanisme",
+                     "paysagiste"],
+    "arts": ["arts", "art", "design", "graphisme", "mode", "musique",
+             "cinema", "audiovisuel", "spectacle", "beaux arts"],
+    "selectif": ["ingenierie", "ingenieur", "commerce", "gestion",
+                 "management", "business", "ecole de commerce"],
+}
+
+
+def famille_domaine(domaine: str | None) -> str | None:
+    """Rapproche un domaine libre d'une famille de procédure.
+
+    Renvoie None quand le domaine ne change rien à la procédure : c'est le
+    cas le plus fréquent, et il ne faut surtout pas inventer une spécificité
+    pour le rendre moins banal.
+    """
+    import unicodedata
+
+    d = unicodedata.normalize("NFD", (domaine or "").lower())
+    d = "".join(c for c in d if unicodedata.category(c) != "Mn")
+    # « sage-femme » et « sage femme » doivent se rencontrer : les libellés
+    # de domaine arrivent des deux formes selon qu'ils viennent du catalogue
+    # ou de l'étudiant.
+    d = d.replace("-", " ").replace("'", " ")
+    for famille, mots in FAMILLES_DOMAINE.items():
+        if any(m in d for m in mots):
+            return famille
+    return None
+
+
+# Adaptations par famille de domaine, appliquées APRÈS celles du niveau.
+# Même forme que ADAPTATIONS : {etape_id: {champs à écraser}}.
+ADAPTATIONS_DOMAINE = {
+    "sante": {
+        "voeux": {
+            "label": "Déposer votre DAP blanche (parcours accès santé)",
+            "critique": True,
+            "docs": ["Dossier DAP blanche", "TCF DAP", "Diplômes traduits"],
+            "conseil": "Le parcours accès santé relève de la DAP, même si on "
+                       "vous dit que la DAP ne concerne que la L1. Vous "
+                       "formulez trois vœux au lieu de sept, et la clôture "
+                       "est plus précoce. Vérifiez le calendrier DAP de "
+                       "votre pays, pas le calendrier général.",
+        },
+        "langue": {
+            "label": "Passer le TCF DAP (test spécifique)",
+            "conseil": "La DAP exige le TCF DAP, qui n'est pas le TCF tout "
+                       "public. Réservez tôt : les sessions sont moins "
+                       "nombreuses et la clôture DAP tombe avant les autres.",
+        },
+    },
+    "architecture": {
+        "voeux": {
+            "label": "Déposer votre DAP jaune (écoles d'architecture)",
+            "critique": True,
+            "docs": ["Dossier DAP jaune", "TCF DAP", "Dossier de travaux",
+                     "Diplômes traduits"],
+            "conseil": "Les écoles d'architecture relèvent de la DAP jaune, "
+                       "y compris les écoles privées. Trois vœux, clôture "
+                       "plus précoce, et la plupart des écoles demandent un "
+                       "dossier de travaux personnels.",
+        },
+        "langue": {
+            "label": "Passer le TCF DAP (test spécifique)",
+            "conseil": "La DAP exige le TCF DAP. Réservez tôt, les sessions "
+                       "sont moins nombreuses.",
+        },
+        "dossier": {
+            "conseil": "Préparez votre dossier de travaux en même temps que "
+                       "les pièces administratives : croquis, maquettes "
+                       "photographiées, projets personnels. C'est la pièce "
+                       "qui demande le plus de temps et celle qu'on "
+                       "commence toujours trop tard.",
+        },
+    },
+    "arts": {
+        "dossier": {
+            "docs": ["Relevés de notes", "Diplômes traduits",
+                     "Dossier de travaux (portfolio)"],
+            "conseil": "Les formations artistiques demandent presque toutes "
+                       "un dossier de travaux, et parfois une épreuve "
+                       "pratique. Comptez plusieurs semaines pour le "
+                       "constituer : c'est lui qui vous départage, pas le "
+                       "relevé de notes.",
+        },
+    },
+    "selectif": {
+        "voeux": {
+            "conseil": "Beaucoup d'écoles d'ingénieurs et de commerce "
+                       "recrutent par concours ou sur leur propre "
+                       "plateforme, hors Études en France. Elles relèvent "
+                       "alors de la procédure préconsulaire : vous "
+                       "candidatez directement auprès de l'école, puis vous "
+                       "déclarez l'admission obtenue pour le visa. "
+                       "Vérifiez école par école avant de compter sur vos "
+                       "vœux Études en France.",
+        },
+    },
+}
+
+
 ADAPTATIONS = {
     "l1_dap": {
         "langue": {
