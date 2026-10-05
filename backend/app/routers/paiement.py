@@ -64,6 +64,25 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
     return {"received": True, "transaction_id": tx, "paid": ok}
 
 
+@router.api_route("/retour", methods=["GET", "POST"], response_class=HTMLResponse)
+async def retour(request: Request, tx: str = "", db: Session = Depends(get_db)):
+    """Page où CinetPay renvoie l'étudiant après le paiement (selon les cas en
+    GET ou en POST). On revérifie auprès de CinetPay avant d'afficher quoi que ce soit."""
+    if not tx and request.method == "POST":
+        form = await request.form()
+        tx = form.get("transaction_id") or form.get("cpm_trans_id") or ""
+    ok = _confirmer(db, tx) if tx else False
+    titre = "✅ Paiement confirmé" if ok else "⏳ Paiement en cours de confirmation"
+    texte = ("Votre parcours de mobilité est débloqué."
+             if ok else "Si vous avez bien payé, la confirmation arrive en général "
+                        "en quelques minutes.")
+    return HTMLResponse(
+        f"<!doctype html><meta charset='utf-8'><title>{titre}</title>"
+        f"<div style='font-family:system-ui;max-width:420px;margin:60px auto;text-align:center'>"
+        f"<h2>{titre}</h2><p>{texte}</p>"
+        f"<p><a href='/' style='color:#0e6b5c;font-weight:700'>Revenir à One Moov</a></p></div>")
+
+
 @router.get("/status")
 def status(piste_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     p = db.get(Piste, piste_id)

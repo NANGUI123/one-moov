@@ -106,7 +106,8 @@ class Settings(BaseSettings):
 
     @property
     def prix_fcfa(self) -> int:
-        return round(self.PRIX_PARCOURS_EUR * self.TAUX_EUR_FCFA)
+        # CinetPay refuse en XAF/XOF un montant qui n'est pas multiple de 5.
+        return 5 * round(self.PRIX_PARCOURS_EUR * self.TAUX_EUR_FCFA / 5)
 
 
 @lru_cache

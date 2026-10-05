@@ -86,7 +86,7 @@ const ETAPE_LABEL = { orientation: "Orientation", formations: "Rapport & pistes"
 const viewForEtape = (e) => (e === "roadmap" ? "roadmap" : e === "parcours" ? "parcours" : e === "formations" ? "rapport" : "orientation");
 const decompte = (j) => (j == null ? "" : j < 0 ? `en retard de ${-j} j` : j === 0 ? "aujourd'hui" : `dans ${j} j`);
 const fcfa = (n) => `${(n || 0).toLocaleString("fr-FR").replace(/ /g, " ")} FCFA`;
-const PRIX_FCFA = 52477;
+const PRIX_FCFA = 52475;
 
 export default function App() {
   // welcome = accueil marketing ; auth = inscription/connexion ; profil =
