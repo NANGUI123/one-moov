@@ -11,6 +11,11 @@ def test_health_repond(client):
     assert "guidé" in body["mode"]
 
 
+def test_health_accepte_head(client):
+    """Les sondes de disponibilité (UptimeRobot…) interrogent souvent en HEAD."""
+    assert client.head("/health").status_code == 200
+
+
 def test_documentation_ouverte(client):
     """Les docs FastAPI répondent : l'API est explorable sans jeton."""
     r = client.get("/docs")

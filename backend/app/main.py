@@ -86,7 +86,7 @@ def _startup():
     threading.Thread(target=_sync_rncp_bg, name="rncp-sync", daemon=True).start()
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     llm = get_llm()
     etat = llm.etat()
