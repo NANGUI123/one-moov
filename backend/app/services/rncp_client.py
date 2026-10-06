@@ -168,6 +168,7 @@ def _verdict(fiche: RncpFiche, etablissement: str = "") -> dict:
     qu'en dise la colonne d'état.
     """
     remplacant = (getattr(fiche, "remplace_par", "") or "").strip()
+    noms = [n.strip() for n in (fiche.certificateurs or "").split(" ; ") if n.strip()]
     est_echue = echue(fiche.date_fin)
     expire = (not fiche.actif) or est_echue or bool(remplacant)
 
@@ -185,9 +186,11 @@ def _verdict(fiche: RncpFiche, etablissement: str = "") -> dict:
             msg += (f" Cette fiche est remplacée par {remplacant} : c'est "
                     f"celle-là qu'il faut vérifier.")
     else:
+        # L'ingestion réunit les certificateurs d'une fiche en « A ; B ; … » :
+        # au-delà de trois, on donne leur nombre plutôt qu'une liste illisible.
+        noms_affiches = ", ".join(noms) if len(noms) <= 3 else f"{len(noms)} certificateurs"
         msg = ("Titre RNCP actif et reconnu par l'État"
-               + (f" (certificateur : {fiche.certificateurs})"
-                  if fiche.certificateurs else "") + ".")
+               + (f" (certificateur : {noms_affiches})" if noms else "") + ".")
 
     # Une fiche nationale couvre des dizaines d'établissements. Dire qu'un
     # master est enregistré sous tel code est exact et ne prouve rien sur
@@ -195,18 +198,22 @@ def _verdict(fiche: RncpFiche, etablissement: str = "") -> dict:
     reserve = ""
     couvre = couvre_etablissement(fiche.certificateurs or "", etablissement)
     if couvre is None and etablissement:
-        reserve = (f"Fiche partagée par plusieurs établissements : le "
-                   f"rattachement de « {etablissement} » n'est pas vérifié "
-                   f"par cet export.")
+        origine = ("Fiche partagée par plusieurs établissements"
+                   if fiche.certificateurs else "Certificateurs absents de l'export")
+        reserve = (f"{origine} : le rattachement de « {etablissement} » "
+                   f"n'est pas vérifié par cet export.")
     elif couvre is False:
+        # La comparaison se fait sur les noms : un sigle (« INSA Lyon ») ne
+        # retrouve pas la raison sociale complète. D'où le renvoi à la fiche.
         reserve = (f"« {etablissement} » ne figure pas parmi les "
-                   f"certificateurs de cette fiche.")
+                   f"certificateurs de cette fiche sous ce nom : vérifiez-le "
+                   f"sur la fiche officielle.")
     if reserve:
         msg += " " + reserve
 
     return _res("expire" if expire else "actif",
                 code_rncp=fiche.code_rncp, intitule=fiche.intitule,
-                certificateurs=[fiche.certificateurs] if fiche.certificateurs else [],
+                certificateurs=noms,
                 niveau=fiche.niveau or "", date_echeance=fiche.date_fin or "",
                 url_fiche=_url_fiche(remplacant or fiche.code_rncp),
                 remplace_par=remplacant, reserve=reserve,

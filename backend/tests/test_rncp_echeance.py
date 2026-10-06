@@ -105,7 +105,7 @@ def test_une_fiche_remplacee_renvoie_vers_la_remplacante(fiches):
     assert r["statut"] == "expire"
     assert r["remplace_par"] == "RNCP42505"
     assert "RNCP42505" in r["message"]
-    assert "RNCP42505" in r["url_fiche"], \
+    assert "/recherche/rncp/42505/" in r["url_fiche"], \
         "le lien doit mener à la fiche en vigueur, pas à la périmée"
 
 

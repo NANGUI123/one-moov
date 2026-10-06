@@ -62,3 +62,4 @@ def init_db() -> None:
     Base.metadata.create_all(bind=engine)
     # Ajouts de colonnes rétrocompatibles.
     _colonne_si_manquante("users", "pays_residence VARCHAR(80) DEFAULT ''")
+    _colonne_si_manquante("rncp_fiches", "remplace_par VARCHAR(20) NOT NULL DEFAULT ''")

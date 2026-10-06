@@ -883,7 +883,13 @@ function RncpCarte({ formation, piste }) {
   // Encart déplié
   const code = detail?.code_rncp || formation.code_rncp || "";
   const intitule = detail?.intitule || formation.intitule || "";
-  const cert = (detail?.certificateurs?.[0]) || formation.etablissement || "";
+  const certs = detail?.certificateurs || [];
+  const cert = certs.length > 1
+    ? `${certs.length} ${t("rapport.rncp.certificateurs")}`
+    : (certs[0] || formation.etablissement || "");
+  // Le verdict n'est affiché que s'il apprend quelque chose : fiche expirée,
+  // remplacée, absente, ou rattachement de l'école non confirmé.
+  const alerte = detail && (detail.statut !== "actif" || detail.reserve) ? detail.message : "";
   const niveau = niveauLibelle(detail?.niveau);
   const dateVerif = dateFr(detail?.date_verif || new Date().toISOString().slice(0, 10));
   const urlFiche = detail?.url_fiche || (() => {
@@ -915,6 +921,12 @@ function RncpCarte({ formation, piste }) {
         <>
           {intitule && <div style={{ marginTop: 8 }}>{intitule}</div>}
           {cert && <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>{cert}</div>}
+          {alerte && (
+            <div style={{ marginTop: 8, fontSize: 13, fontWeight: 600,
+                          color: detail.deconseille ? C.danger : C.gold }}>
+              {alerte}
+            </div>
+          )}
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <span className="muted" style={{ fontSize: 12 }}>
               {t("rapport.rncp.verifie_le")} {dateVerif}

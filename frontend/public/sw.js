@@ -30,7 +30,7 @@
 // styles, palette). L'activation du nouveau SW efface les caches
 // nommés autrement — les étudiants voient la nouvelle version dès leur
 // prochaine ouverture, sans manipulation à faire.
-const VERSION = "one-moov-v21";
+const VERSION = "one-moov-v22";
 
 // Mesuré sur une 3G encombrée : au-delà de deux secondes et demie, l'étudiant
 // a déjà l'impression que l'application est cassée.

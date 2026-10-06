@@ -96,10 +96,44 @@ def parse_csv_bytes(data: bytes) -> list[dict]:
             "etat": etat,
             "remplace_par": _remplacant(row),
             "niveau": _pick(row, "Nomenclature_Europe_Niveau", "Niveau", "niveau"),
-            "certificateurs": _pick(row, "Nom_Legal_Certificateur", "Certificateurs", "certificateur"),
+            "certificateurs": _pick(row, "Nom_Legal_Certificateur", "Nom_Certificateur",
+                                    "Certificateurs", "certificateur"),
             "date_fin": _pick(row, "Date_Fin_Enregistrement", "date_fin"),
         })
     return rows
+
+
+def fusionner(fiches: list[dict]) -> list[dict]:
+    """Une seule ligne par code.
+
+    L'archive peut contenir plusieurs CSV qui répètent le même code (fiche,
+    certificateurs, remplacements…). Sans fusion, une ligne annexe sans état
+    ni intitulé pouvait être celle que la vérification retrouvait, et passer
+    pour une fiche inactive. Ici, l'état ne vient que des lignes qui en
+    déclarent un, et les certificateurs de toutes les lignes sont réunis.
+    """
+    groupes: dict[str, list[dict]] = {}
+    out: list[dict] = []
+    for f in fiches:
+        if f["code_rncp"]:
+            groupes.setdefault(f["code_rncp"], []).append(f)
+        else:
+            out.append(f)
+    for code, lignes in groupes.items():
+        def premier(champ: str) -> str:
+            return next((l[champ] for l in lignes if l[champ]), "")
+        certificateurs = dict.fromkeys(l["certificateurs"] for l in lignes if l["certificateurs"])
+        out.append({
+            "code_rncp": code,
+            "intitule": premier("intitule"),
+            "etat": premier("etat"),
+            "actif": any(l["actif"] for l in lignes if l["etat"]),
+            "remplace_par": premier("remplace_par"),
+            "niveau": premier("niveau"),
+            "certificateurs": " ; ".join(certificateurs),
+            "date_fin": premier("date_fin"),
+        })
+    return out
 
 
 def sync(db: Session) -> int:
@@ -116,9 +150,12 @@ def sync(db: Session) -> int:
         with zipfile.ZipFile(io.BytesIO(resp.content)) as z:
             for name in z.namelist():
                 if name.lower().endswith(".csv"):
-                    fiches += parse_csv_bytes(z.read(name))
+                    lignes = parse_csv_bytes(z.read(name))
+                    logger.info(f"Export RNCP : {name} → {len(lignes)} lignes")
+                    fiches += lignes
     else:
         fiches = parse_csv_bytes(resp.content)
+    fiches = fusionner(fiches)
 
     if not fiches:
         raise RuntimeError("Aucune fiche RNCP parsée depuis l'export")
