@@ -10,6 +10,7 @@ Lancement : python -m app.scripts.sync_rncp
 """
 import io
 import csv
+import re
 import zipfile
 import logging
 from datetime import date
@@ -53,6 +54,20 @@ def _is_actif(val: str) -> bool:
     return val.strip().lower() in ("active", "actif", "oui", "true", "1", "publiée", "publiee")
 
 
+def _remplacant(row: dict) -> str:
+    """Le code de la fiche qui remplace celle-ci, si l'export le donne.
+
+    France Compétences nomme cette colonne différemment selon les exports.
+    Plusieurs codes peuvent être listés ; on garde le premier, qui suffit à
+    envoyer l'étudiant au bon endroit.
+    """
+    brut = _pick(row, "Nouvelle_Certification", "Nouvelle_certification",
+                 "Nouvelles_Certifications", "nouvelle_certification",
+                 "Remplace_Par", "remplace_par")
+    codes = re.findall(r"(?:RNCP|RS)\s*\d+", brut, flags=re.I)
+    return codes[0].upper().replace(" ", "") if codes else ""
+
+
 def parse_csv_bytes(data: bytes) -> list[dict]:
     """Parse un CSV France Compétences (délimiteur ';', UTF-8 ou Latin-1)."""
     for enc in ("utf-8-sig", "latin-1"):
@@ -74,8 +89,12 @@ def parse_csv_bytes(data: bytes) -> list[dict]:
         rows.append({
             "code_rncp": code.upper().replace(" ", ""),
             "intitule": intitule,
-            "actif": _is_actif(etat) if etat else True,
+            # Une colonne d'état absente valait « actif » : un faux positif
+            # silencieux, et le pire sens pour un défaut de données. Une
+            # fiche dont on ignore l'état n'est pas une fiche active.
+            "actif": _is_actif(etat),
             "etat": etat,
+            "remplace_par": _remplacant(row),
             "niveau": _pick(row, "Nomenclature_Europe_Niveau", "Niveau", "niveau"),
             "certificateurs": _pick(row, "Nom_Legal_Certificateur", "Certificateurs", "certificateur"),
             "date_fin": _pick(row, "Date_Fin_Enregistrement", "date_fin"),

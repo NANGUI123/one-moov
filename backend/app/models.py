@@ -96,6 +96,10 @@ class RncpFiche(Base):
     niveau: Mapped[str] = mapped_column(String(40), default="")
     certificateurs: Mapped[str] = mapped_column(Text, default="")
     date_fin: Mapped[str] = mapped_column(String(40), default="")
+    # Code de la fiche qui remplace celle-ci. Les fiches se remplacent en
+    # chaîne (EPITECH : 17286 → 37985 → 42505) et une fiche remplacée reste
+    # souvent déclarée active le temps de la transition.
+    remplace_par: Mapped[str] = mapped_column(String(20), default="")
     date_sync: Mapped[str] = mapped_column(String(40), default="")
 
 
